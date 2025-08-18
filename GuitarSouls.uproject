@@ -12,9 +12,29 @@
 				"Engine",
 				"UMG"
 			]
+		},
+		{
+			"Name": "GuitarSoulsGAS",
+			"Type": "Runtime",
+			"LoadingPhase": "PostDefault",
+			"AdditionalDependencies": [
+				"Engine",
+				"GameplayAbilities",
+				"GuitarSouls",
+				"UMG"
+			]
+
 		}
 	],
 	"Plugins": [
+		{
+			"Name": "GameplayAbilities",
+			"Enabled": true
+		},
+		{
+			"Name": "GameFeatures",
+			"Enabled": true
+		},
 		{
 			"Name": "ModelingToolsEditorMode",
 			"Enabled": true,
