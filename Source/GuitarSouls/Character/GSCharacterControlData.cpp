@@ -5,5 +5,5 @@
 
 UGSCharacterControlData::UGSCharacterControlData()
 {
-	
+	TargetArmLength = 400.f;
 }

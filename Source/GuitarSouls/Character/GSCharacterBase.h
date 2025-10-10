@@ -6,26 +6,23 @@
 #include "GameFramework/Character.h"
 #include "GSCharacterBase.generated.h"
 
+UENUM()
+enum class ECharacterControlType : uint8
+{
+	Default
+};
+
 UCLASS()
 class GUITARSOULS_API AGSCharacterBase : public ACharacter
 {
 	GENERATED_BODY()
 
 public:
-	// Sets default values for this character's properties
 	AGSCharacterBase();
 
 protected:
-	// Called when the game starts or when spawned
-	virtual void BeginPlay() override;
+	virtual void SetCharacterControlData(const class UGSCharacterControlData* CharacterControlData);
 
-public:	
-	// Called every frame
-	virtual void Tick(float DeltaTime) override;
-
-	// Called to bind functionality to input
-	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
-
-protected:
-
+	UPROPERTY(EditAnywhere, Category=CharacterControl, meta=(AllowPrivateAccess = "true"))
+	TMap<ECharacterControlType, class UGSCharacterControlData*> CharacterControlManager;
 };
