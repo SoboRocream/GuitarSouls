@@ -29,5 +29,18 @@ namespace GSGameplayTags
 	UE_DEFINE_GAMEPLAY_TAG(Character_Attack_Special, "Character.Attack.Special");
 	UE_DEFINE_GAMEPLAY_TAG(Character_Attack_Running, "Character.Attack.Running");
 	UE_DEFINE_GAMEPLAY_TAG(Character_Attack_Air, "Character.Attack.Air");
+
+	// ==================== Character State (GAS 신규) ====================
+	UE_DEFINE_GAMEPLAY_TAG(Character_State_Immune,		"Character.State.Immune");
+	UE_DEFINE_GAMEPLAY_TAG(Character_State_Staggered,	"Character.State.Staggered");
+	UE_DEFINE_GAMEPLAY_TAG(Character_State_Phase2,		"Character.State.Phase2");
+
+	// ==================== Boss Ability ====================
+	UE_DEFINE_GAMEPLAY_TAG(Ability_Boss_Melee_Swing_Horizontal,	"Ability.Boss.Melee.Swing.Horizontal");
+	UE_DEFINE_GAMEPLAY_TAG(Ability_Boss_Melee_Thrust,			"Ability.Boss.Melee.Thrust");
+	UE_DEFINE_GAMEPLAY_TAG(Ability_Boss_Jump_LeapAttack,		"Ability.Boss.Jump.LeapAttack");
+
+	// ==================== Effect ====================
+	UE_DEFINE_GAMEPLAY_TAG(Effect_Buff_DamageMultiplier,		"Effect.Buff.DamageMultiplier");
 	
 }

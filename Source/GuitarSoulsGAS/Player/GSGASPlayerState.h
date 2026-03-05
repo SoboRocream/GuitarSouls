@@ -7,9 +7,6 @@
 #include "AbilitySystemInterface.h"
 #include "GSGASPlayerState.generated.h"
 
-/**
- * 
- */
 UCLASS()
 class GUITARSOULSGAS_API AGSGASPlayerState : public APlayerState, public IAbilitySystemInterface
 {
@@ -20,8 +17,13 @@ public:
 
 	virtual class UAbilitySystemComponent* GetAbilitySystemComponent() const override;
 
+	FORCEINLINE class UGSAttributeSet* GetAttributeSet() const { return AttributeSet; }
+
 protected:
 	UPROPERTY(EditAnywhere, Category = GAS)
 	TObjectPtr<class UAbilitySystemComponent> ASC;
+
+	UPROPERTY()
+	TObjectPtr<class UGSAttributeSet> AttributeSet;
 
 };

@@ -30,5 +30,18 @@ namespace GSGameplayTags
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Character_Attack_Special);
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Character_Attack_Running);
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Character_Attack_Air);
+
+	// ==================== Character State (GAS 신규) ====================
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Character_State_Immune);		// 페이즈 전환 중 무적
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Character_State_Staggered);	// 강인도 소진 시 경직
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Character_State_Phase2);		// 보스 광폭화
+
+	// ==================== Boss Ability ====================
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Boss_Melee_Swing_Horizontal);	// 횡베기
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Boss_Melee_Thrust);				// 찌르기
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Boss_Jump_LeapAttack);			// 도약 공격
+
+	// ==================== Effect ====================
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Effect_Buff_DamageMultiplier);			// 페이즈2 공격력 증가
 	
 }
