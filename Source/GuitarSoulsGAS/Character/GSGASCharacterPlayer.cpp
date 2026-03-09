@@ -10,6 +10,7 @@
 #include "EnhancedInputSubsystems.h"
 #include "Player/GSGASPlayerState.h"
 #include "Abilities/GameplayAbility.h"
+#include "UI/GSGASPlayerHUDWidget.h"
 
 AGSGASCharacterPlayer::AGSGASCharacterPlayer()
 {
@@ -73,6 +74,22 @@ void AGSGASCharacterPlayer::BeginPlay()
 			if (DefaultMappingContext)
 			{
 				Subsystem->AddMappingContext(DefaultMappingContext, 0);
+			}
+		}
+	}
+
+	// HUD 생성 및 ASC 연결
+	if (PlayerHUDWidgetClass)
+	{
+		PlayerHUDWidget = CreateWidget<UGSGASPlayerHUDWidget>(GetWorld(), PlayerHUDWidgetClass);
+		if (PlayerHUDWidget)
+		{
+			PlayerHUDWidget->AddToViewport();
+
+			// PlayerState에서 ASC 획득 후 위젯에 주입
+			if (AGSGASPlayerState* GASPS = GetPlayerState<AGSGASPlayerState>())
+			{
+				PlayerHUDWidget->SetASC(GASPS->GetAbilitySystemComponent());
 			}
 		}
 	}

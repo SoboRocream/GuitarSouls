@@ -18,11 +18,12 @@ public:
 	AGSGASCharacterPlayer();
 
 	virtual void PossessedBy(AController* NewController) override;
+
 protected:
 	virtual void BeginPlay() override;
 	virtual void SetupPlayerInputComponent(UInputComponent* PlayerInputComponent) override;
 
-// GAS Input Section
+	// GAS Input Section
 protected:
 	void SetupGASInputComponent();
 	void GASInputPressed(int32 InputId);
@@ -31,7 +32,7 @@ protected:
 	UPROPERTY(EditAnywhere, Category = GAS)
 	TMap<int32, TSubclassOf<class UGameplayAbility>> StartInputAbilities;
 	
-// Camera Section
+	// Camera Section
 protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<class USpringArmComponent> CameraBoom;
@@ -39,7 +40,7 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<class UCameraComponent> FollowCamera;
 
-// Input Section
+	// Input Section
 protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<class UInputMappingContext> DefaultMappingContext;
@@ -52,4 +53,12 @@ protected:
 
 	void Move(const FInputActionValue& Value);
 	void Look(const FInputActionValue& Value);
+
+	// UI Section
+protected:
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = UI)
+	TSubclassOf<class UGSGASPlayerHUDWidget> PlayerHUDWidgetClass;
+
+	UPROPERTY()
+	TObjectPtr<class UGSGASPlayerHUDWidget> PlayerHUDWidget;
 };

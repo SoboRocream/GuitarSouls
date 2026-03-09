@@ -11,6 +11,8 @@ UGSAttributeSet::UGSAttributeSet()
 	InitStamina(100.f);
 	InitMaxStamina(100.f);
 	InitDamage(100.f);
+	InitPotionCount(5.f);
+	InitMaxPotionCount(5.f);
 }
 
 void UGSAttributeSet::PreAttributeChange(const FGameplayAttribute& Attribute, float& NewValue)
@@ -23,6 +25,10 @@ void UGSAttributeSet::PreAttributeChange(const FGameplayAttribute& Attribute, fl
 	else if (Attribute == GetStaminaAttribute())
 	{
 		NewValue = FMath::Clamp(NewValue, 0.f, GetMaxStamina());
+	}
+	else if (Attribute == GetPotionCountAttribute())
+	{
+		NewValue = FMath::Clamp(NewValue, 0.f, GetMaxPotionCount());
 	}
 }
 
@@ -46,6 +52,15 @@ void UGSAttributeSet::PostGameplayEffectExecute(const struct FGameplayEffectModC
 		if (GetStamina() <= 0.f)
 		{
 			OnOutOfStamina.Broadcast();
+		}
+	}
+	else if (Data.EvaluatedData.Attribute == GetPotionCountAttribute())
+	{
+		SetPotionCount(FMath::Clamp(GetPotionCount(), 0.f, GetMaxPotionCount()));
+
+		if (GetPotionCount() <= 0.f)
+		{
+			OnOutOfPotion.Broadcast();
 		}
 	}
 }
