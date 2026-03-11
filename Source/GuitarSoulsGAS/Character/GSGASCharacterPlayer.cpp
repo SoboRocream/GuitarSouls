@@ -61,6 +61,21 @@ void AGSGASCharacterPlayer::PossessedBy(AController* NewController)
 		}
 
 		SetupGASInputComponent();
+
+			// 초기 스탯 GE 적용 — CurrentValue를 채워줌으로써 HUD 초기값 정상 표시
+		if (InitStatEffect)
+		{
+			FGameplayEffectContextHandle ContextHandle = ASC->MakeEffectContext();
+			ContextHandle.AddSourceObject(this);
+			FGameplayEffectSpecHandle SpecHandle = ASC->MakeOutgoingSpec(InitStatEffect, 1.f, ContextHandle);
+			if (SpecHandle.IsValid())
+			{
+				ASC->ApplyGameplayEffectSpecToSelf(*SpecHandle.Data.Get());
+			}
+		}
+
+		APlayerController* PlayerController = CastChecked<APlayerController>(NewController);
+		PlayerController->ConsoleCommand(TEXT("showdebug abilitysystem"));
 	}
 }
 

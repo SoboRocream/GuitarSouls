@@ -53,7 +53,12 @@ protected:
 
 	void Move(const FInputActionValue& Value);
 	void Look(const FInputActionValue& Value);
-
+	
+	// GAS Init Section
+protected:
+	UPROPERTY(EditAnywhere, Category = GAS)
+	TSubclassOf<class UGameplayEffect> InitStatEffect;
+	
 	// UI Section
 protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = UI)
