@@ -53,6 +53,12 @@ protected:
 
 	void Move(const FInputActionValue& Value);
 	void Look(const FInputActionValue& Value);
+
+	// Character Dead Section
+protected:
+	UFUNCTION()
+	void OnOutOfHealth();
+	void OnDeath();
 	
 	// GAS Init Section
 protected:

@@ -4,7 +4,6 @@
 #include "Animation/GSGASAnimNotifyState_Parry.h"
 #include "AbilitySystemInterface.h"
 #include "AbilitySystemComponent.h"
-#include "Tag/GSGameplayTags.h"
 #include "Tags/GSGASGameplayTags.h"
 
 void UGSGASAnimNotifyState_Parry::NotifyBegin(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation,
@@ -18,7 +17,7 @@ void UGSGASAnimNotifyState_Parry::NotifyBegin(USkeletalMeshComponent* MeshComp, 
 		{
 			if (UAbilitySystemComponent* ASC = ASCInterface->GetAbilitySystemComponent())
 			{
-				ASC->AddLooseGameplayTag(GSGameplayTags::Character_State_Parrying);
+				ASC->AddLooseGameplayTag(GSGASGameplayTags::Character_State_Parrying);
 			}
 		}
 	}
@@ -35,7 +34,7 @@ void UGSGASAnimNotifyState_Parry::NotifyEnd(USkeletalMeshComponent* MeshComp, UA
 		{
 			if (UAbilitySystemComponent* ASC = ASCInterface->GetAbilitySystemComponent())
 			{
-				ASC->RemoveLooseGameplayTag(GSGameplayTags::Character_State_Parrying);
+				ASC->RemoveLooseGameplayTag(GSGASGameplayTags::Character_State_Parrying);
 			}
 		}
 	}

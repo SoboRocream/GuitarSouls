@@ -6,9 +6,11 @@
 
 namespace GSGASGameplayTags
 {
-	// ── Combo ─────────────────────────────────────────────────────────────────
+	// ── Character ──────────────────────────────────────────────────────────────
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Character_State_ComboWindow);
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Character_State_Parrying);
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Character_State_Death)
 
-	// ── Parry ─────────────────────────────────────────────────────────────────
-	// Character.State.Parrying 은 레거시 GSGameplayTags에서 그대로 참조
+	// ── Data ──────────────────────────────────────────────────────────────────
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Data_Damage);
 }

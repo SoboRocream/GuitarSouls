@@ -10,6 +10,8 @@
 #include "EnhancedInputSubsystems.h"
 #include "Player/GSGASPlayerState.h"
 #include "Abilities/GameplayAbility.h"
+#include "Components/CapsuleComponent.h"
+#include "Tags/GSGASGameplayTags.h"
 #include "UI/GSGASPlayerHUDWidget.h"
 
 AGSGASCharacterPlayer::AGSGASCharacterPlayer()
@@ -183,5 +185,39 @@ void AGSGASCharacterPlayer::Look(const FInputActionValue& Value)
 	{
 		AddControllerYawInput(LookAxisVector.X);
 		AddControllerPitchInput(LookAxisVector.Y);
+	}
+}
+
+void AGSGASCharacterPlayer::OnOutOfHealth()
+{
+	OnDeath();
+}
+
+void AGSGASCharacterPlayer::OnDeath()
+{
+	// 입력 차단
+	if (APlayerController* PlayerController = Cast<APlayerController>(GetController()))
+	{
+		DisableInput(PlayerController);
+	}
+ 
+	// 콜리전 비활성화
+	if (UCapsuleComponent* Capsule = GetCapsuleComponent())
+	{
+		Capsule->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	}
+ 
+	// 래그돌
+	if (USkeletalMeshComponent* MeshComponent = GetMesh())
+	{
+		MeshComponent->SetCollisionProfileName(TEXT("Ragdoll"));
+		MeshComponent->SetCollisionResponseToChannel(ECC_Camera, ECR_Ignore);
+		MeshComponent->SetSimulatePhysics(true);
+	}
+ 
+	// 사망 태그 부여
+	if (ASC)
+	{
+		ASC->AddLooseGameplayTag(GSGASGameplayTags::Character_State_Death);
 	}
 }
