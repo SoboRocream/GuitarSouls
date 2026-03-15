@@ -159,7 +159,9 @@ void AGSCharacterPlayer::PossessedBy(AController* NewController)
 	Super::PossessedBy(NewController);
 	
 	APlayerController* PlayerController = CastChecked<APlayerController>(NewController);
-	//PlayerController->ConsoleCommand(TEXT("showdebug abilitysystem"));
+	#if WITH_EDITOR
+	PlayerController->ConsoleCommand(TEXT("showdebug abilitysystem"));
+	#endif
 }
 
 bool AGSCharacterPlayer::IsDeath() const
