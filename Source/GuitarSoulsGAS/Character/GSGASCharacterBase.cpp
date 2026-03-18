@@ -10,6 +10,7 @@
 AGSGASCharacterBase::AGSGASCharacterBase()
 {
 	ASC = nullptr;
+	WeaponCollision = CreateDefaultSubobject<UGSGASWeaponCollisionComponent>(TEXT("WeaponCollision"));
 }
 
 UAbilitySystemComponent* AGSGASCharacterBase::GetAbilitySystemComponent() const
