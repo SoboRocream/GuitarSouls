@@ -27,15 +27,7 @@ void UGA_HeavyAttack::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
 		EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
 		return;
 	}
- 
-	const FGSGASAttackData* AttackData = WeaponData->GetAttackData(HeavyAttackTag);
-	if (!AttackData || !AttackData->Montage)
-	{
-		GSGAS_LOG(LogGSGAS, Warning, TEXT("AttackData or Montage is null. EndAbility."));
-		EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
-		return;
-	}
- 
+	
 	AGSGASCharacterBase* Character = Cast<AGSGASCharacterBase>(ActorInfo->AvatarActor.Get());
 	if (!Character)
 	{
@@ -48,6 +40,14 @@ void UGA_HeavyAttack::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
 	if (!WeaponData)
 	{
 		GSGAS_LOG(LogGSGAS, Warning, TEXT("WeaponData is null on %s. EndAbility."), *Character->GetName());
+		EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
+		return;
+	}
+ 
+	const FGSGASAttackData* AttackData = WeaponData->GetAttackData(HeavyAttackTag);
+	if (!AttackData || !AttackData->Montage)
+	{
+		GSGAS_LOG(LogGSGAS, Warning, TEXT("AttackData or Montage is null. EndAbility."));
 		EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
 		return;
 	}
@@ -133,24 +133,135 @@ void UGA_HeavyAttack::PlayAttackMontage()
 
 void UGA_HeavyAttack::ApplyStaminaCost()
 {
+	if (!StaminaCostEffectClass)
+	{
+		GSGAS_LOG(LogGSGAS, Warning, TEXT("StaminaCostEffectClass is null."));
+		return;
+	}
+
+	const FGSGASAttackData* AttackData = WeaponData->GetAttackData(HeavyAttackTag);
+	if (!AttackData)
+	{
+		return;
+	}
+
+	FGameplayEffectSpecHandle SpecHandle = MakeOutgoingGameplayEffectSpec(StaminaCostEffectClass);
+	if (!SpecHandle.IsValid())
+	{
+		GSGAS_LOG(LogGSGAS, Warning, TEXT("StaminaCost SpecHandle is invalid."));
+		return;
+	}
+
+	SpecHandle.Data->SetSetByCallerMagnitude(GSGASGameplayTags::Data_StaminaCost, -AttackData->StaminaCost);
+	const FActiveGameplayEffectHandle ActiveHandle = ApplyGameplayEffectSpecToOwner(
+		GetCurrentAbilitySpecHandle(), GetCurrentActorInfo(), GetCurrentActivationInfo(), SpecHandle);
+
+	if (!ActiveHandle.WasSuccessfullyApplied())
+	{
+		GSGAS_LOG(LogGSGAS, Warning, TEXT("StaminaCost GE failed to apply."));
+		return;
+	}
+
+	GSGAS_LOG(LogGSGAS, Log, TEXT("StaminaCost applied: %.1f"), AttackData->StaminaCost);
+	
 }
 
 void UGA_HeavyAttack::ApplyDamageToTarget(const FHitResult& HitResult)
 {
+	if (!DamageEffectClass)
+	{
+		GSGAS_LOG(LogGSGAS, Warning, TEXT("DamageEffectClass is null."));
+		return;
+	}
+
+	const FGSGASAttackData* AttackData = WeaponData->GetAttackData(HeavyAttackTag);
+	if (!AttackData)
+	{
+		return;
+	}
+
+	AActor* HitActor = HitResult.GetActor();
+	if (!HitActor)
+	{
+		return;
+	}
+
+	UAbilitySystemComponent* TargetASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(HitActor);
+	if (!TargetASC)
+	{
+		GSGAS_LOG(LogGSGAS, Warning, TEXT("TargetASC is null on %s."), *HitActor->GetName());
+		return;
+	}
+
+	FGameplayEffectSpecHandle SpecHandle = MakeOutgoingGameplayEffectSpec(DamageEffectClass);
+	if (!SpecHandle.IsValid())
+	{
+		GSGAS_LOG(LogGSGAS, Warning, TEXT("Damage SpecHandle is invalid."));
+		return;
+	}
+
+	const float FinalDamage = WeaponData->BaseDamage * AttackData->DamageMultiplier;
+	SpecHandle.Data->SetSetByCallerMagnitude(GSGASGameplayTags::Data_Damage, FinalDamage);
+
+	FGameplayAbilityTargetDataHandle TargetDataHandle;
+	FGameplayAbilityTargetData_SingleTargetHit* TargetData =
+		new FGameplayAbilityTargetData_SingleTargetHit(HitResult);
+	
+	TargetDataHandle.Add(TargetData);
+
+	const TArray<FActiveGameplayEffectHandle> ActiveHandles = ApplyGameplayEffectSpecToTarget(
+		GetCurrentAbilitySpecHandle(), GetCurrentActorInfo(),
+		GetCurrentActivationInfo(), SpecHandle, TargetDataHandle);
+	
+	if (ActiveHandles.IsEmpty())
+	{
+		GSGAS_LOG(LogGSGAS, Warning, TEXT("Damage GE failed to apply on %s."), *HitActor->GetName());
+		return;
+	}
+
+	GSGAS_LOG(LogGSGAS, Log, TEXT("Damage applied to %s: %.1f"), *HitActor->GetName(), FinalDamage);
 }
 
+// ── 콜백 ───────────────────────────────────────────────────────────────────────
 void UGA_HeavyAttack::OnMontageCompleted()
 {
+	GSGAS_LOG(LogGSGAS, Log, TEXT("HeavyAttack montage completed."));
+	EndAbility(GetCurrentAbilitySpecHandle(), GetCurrentActorInfo(),
+		GetCurrentActivationInfo(), true, false);
 }
 
 void UGA_HeavyAttack::OnMontageInterrupted()
 {
+	GSGAS_LOG(LogGSGAS, Log, TEXT("HeavyAttack montage interrupted."));
+	EndAbility(GetCurrentAbilitySpecHandle(), GetCurrentActorInfo(),
+		GetCurrentActivationInfo(), true, true);
 }
 
 void UGA_HeavyAttack::OnWeaponHit(const FHitResult& HitResult)
 {
+	ApplyDamageToTarget(HitResult);
 }
 
 void UGA_HeavyAttack::OnAttackCollisionTagChanged(const FGameplayTag Tag, int32 NewCount)
 {
+	AGSGASCharacterBase* Character = Cast<AGSGASCharacterBase>(GetAvatarActorFromActorInfo());
+	if (!Character)
+	{
+		return;
+	}
+
+	UGSGASWeaponCollisionComponent* WeaponCollisionComponent = Character->GetWeaponCollision();
+	if (!WeaponCollisionComponent)
+	{
+		return;
+	}
+
+	if (NewCount > 0)
+	{
+		WeaponCollisionComponent->TurnOnCollision();
+	}
+	else
+	{
+		WeaponCollisionComponent->TurnOffCollision();
+	}
 }

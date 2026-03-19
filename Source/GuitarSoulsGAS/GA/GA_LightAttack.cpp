@@ -34,14 +34,6 @@ void UGA_LightAttack::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
 		return;
 	}
 
-	const FGSGASAttackData* AttackData = WeaponData->GetAttackData(LightAttackTag);
-	if (!AttackData || !AttackData->Montage)
-	{
-		GSGAS_LOG(LogGSGAS, Warning, TEXT("AttackData or Montage is null. EndAbility."));
-		EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
-		return;
-	}
-	
 	AGSGASCharacterBase* Character = Cast<AGSGASCharacterBase>(ActorInfo->AvatarActor.Get());
 	if (!Character)
 	{
@@ -57,7 +49,15 @@ void UGA_LightAttack::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
 		EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
 		return;
 	}
-
+	
+	const FGSGASAttackData* AttackData = WeaponData->GetAttackData(LightAttackTag);
+	if (!AttackData || !AttackData->Montage)
+	{
+		GSGAS_LOG(LogGSGAS, Warning, TEXT("AttackData or Montage is null. EndAbility."));
+		EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
+		return;
+	}
+	
 	UGSGASWeaponCollisionComponent* WeaponCollision = Character->GetWeaponCollision();
 	if (!WeaponCollision)
 	{
