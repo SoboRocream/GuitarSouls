@@ -51,7 +51,7 @@ void UGA_LightAttack::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
 		return;
 	}
 
-	UGSGASWeaponCollisionComponent* WeaponCollision = CachedWeapon->GetWeaponCollision(0);
+	UGSGASWeaponCollisionComponent* WeaponCollision = CachedWeapon->GetWeaponCollision();
 	if (!WeaponCollision)
 	{
 		GSGAS_LOG(LogGSGAS, Warning, TEXT("WeaponCollision is null. EndAbility."));
@@ -75,18 +75,15 @@ void UGA_LightAttack::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
 void UGA_LightAttack::EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo,
 	const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled)
 {
-	if (ActorInfo)
+	if (CachedWeapon)
 	{
-		if (AGSGASCharacterBase* Character = Cast<AGSGASCharacterBase>(ActorInfo->AvatarActor.Get()))
+		if (UGSGASWeaponCollisionComponent* WeaponCollision = CachedWeapon->GetWeaponCollision())
 		{
-			if (UGSGASWeaponCollisionComponent* WeaponCollision = CachedWeapon->GetWeaponCollision(0))
+			WeaponCollision->OnHitActor.Remove(HitDelegateHandle);
+ 
+			if (WeaponCollision->IsCollisionEnabled())
 			{
-				WeaponCollision->OnHitActor.Remove(HitDelegateHandle);
- 		
-				if (WeaponCollision->IsCollisionEnabled())
-				{
-					WeaponCollision->TurnOffCollision();
-				}
+				WeaponCollision->TurnOffCollision();
 			}
 		}
 	}
@@ -280,7 +277,7 @@ void UGA_LightAttack::OnAttackCollisionTagChanged(const FGameplayTag Tag, int32 
 		return;
 	}
  
-	UGSGASWeaponCollisionComponent* WeaponCollision = CachedWeapon->GetWeaponCollision(0);
+	UGSGASWeaponCollisionComponent* WeaponCollision = CachedWeapon->GetWeaponCollision();
 	if (!WeaponCollision)
 	{
 		return;

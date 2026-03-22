@@ -30,9 +30,7 @@ AGSGASWeapon::AGSGASWeapon()
 	InteractionSphere->SetCollisionResponseToChannel(ECC_Pawn, ECR_Overlap);
 
 	// Main 콜리전 (Index 0)
-	UGSGASWeaponCollisionComponent* MainCollision =
-		CreateDefaultSubobject<UGSGASWeaponCollisionComponent>(TEXT("MainWeaponCollision"));
-	WeaponCollisions.Add(MainCollision);
+	MainWeaponCollision = CreateDefaultSubobject<UGSGASWeaponCollisionComponent>(TEXT("MainWeaponCollision"));
 }
 
 void AGSGASWeapon::Interact(AActor* InteractionActor)
@@ -60,7 +58,7 @@ void AGSGASWeapon::EquipItem()
 	OwnerCharacter->SetEquippedWeapon(this);
  
 	// Main 콜리전 초기화
-	if (UGSGASWeaponCollisionComponent* MainCollision = GetWeaponCollision(0))
+	if (UGSGASWeaponCollisionComponent* MainCollision = GetWeaponCollision())
 	{
 		MainCollision->SetWeaponMesh(Mesh);
 		MainCollision->AddIgnoreActor(OwnerCharacter);

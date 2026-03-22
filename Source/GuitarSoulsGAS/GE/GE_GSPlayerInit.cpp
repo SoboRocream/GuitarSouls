@@ -43,16 +43,7 @@ UGE_GSPlayerInit::UGE_GSPlayerInit()
 		Mod.ModifierMagnitude = FGameplayEffectModifierMagnitude(FScalableFloat(100.f));
 		Modifiers.Add(Mod);
 	}
-
-	// ── Damage ───────────────────────────────────────────────────────────────
-	{
-		FGameplayModifierInfo Mod;
-		Mod.Attribute = UGSAttributeSet::GetDamageAttribute();
-		Mod.ModifierOp = EGameplayModOp::Override;
-		Mod.ModifierMagnitude = FGameplayEffectModifierMagnitude(FScalableFloat(100.f));
-		Modifiers.Add(Mod);
-	}
-
+	
 	// ── MaxPotionCount ───────────────────────────────────────────────────────
 	{
 		FGameplayModifierInfo Mod;

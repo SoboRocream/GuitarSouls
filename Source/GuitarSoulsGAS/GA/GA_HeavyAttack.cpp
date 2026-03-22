@@ -45,7 +45,7 @@ void UGA_HeavyAttack::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
 		return;
 	}
  
-	UGSGASWeaponCollisionComponent* WeaponCollision = CachedWeapon->GetWeaponCollision(0);
+	UGSGASWeaponCollisionComponent* WeaponCollision = CachedWeapon->GetWeaponCollision();
 	if (!WeaponCollision)
 	{
 		GSGAS_LOG(LogGSGAS, Warning, TEXT("WeaponCollision is null. EndAbility."));
@@ -71,7 +71,7 @@ void UGA_HeavyAttack::EndAbility(const FGameplayAbilitySpecHandle Handle, const 
 {
 	if (CachedWeapon)
 	{
-		if (UGSGASWeaponCollisionComponent* WeaponCollision = CachedWeapon->GetWeaponCollision(0))
+		if (UGSGASWeaponCollisionComponent* WeaponCollision = CachedWeapon->GetWeaponCollision())
 		{
 			WeaponCollision->OnHitActor.Remove(HitDelegateHandle);
  
@@ -230,7 +230,7 @@ void UGA_HeavyAttack::OnAttackCollisionTagChanged(const FGameplayTag Tag, int32 
 		return;
 	}
  
-	UGSGASWeaponCollisionComponent* WeaponCollision = CachedWeapon->GetWeaponCollision(0);
+	UGSGASWeaponCollisionComponent* WeaponCollision = CachedWeapon->GetWeaponCollision();
 	if (!WeaponCollision)
 	{
 		return;

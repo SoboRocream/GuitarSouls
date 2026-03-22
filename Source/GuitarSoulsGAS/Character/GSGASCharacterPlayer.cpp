@@ -64,15 +64,18 @@ void AGSGASCharacterPlayer::PossessedBy(AController* NewController)
 
 		SetupGASInputComponent();
 
-			// 초기 스탯 GE 적용 — CurrentValue를 채워줌으로써 HUD 초기값 정상 표시
-		if (InitStatEffect)
+			// 초기 GE 적용 — CurrentValue를 채워줌으로써 HUD 초기값 정상 표시 및 기타 초기 effect 적용
+		for (const auto& InitEffect : InitEffects)
 		{
-			FGameplayEffectContextHandle ContextHandle = ASC->MakeEffectContext();
-			ContextHandle.AddSourceObject(this);
-			FGameplayEffectSpecHandle SpecHandle = ASC->MakeOutgoingSpec(InitStatEffect, 1.f, ContextHandle);
-			if (SpecHandle.IsValid())
+			if (InitEffect)
 			{
-				ASC->ApplyGameplayEffectSpecToSelf(*SpecHandle.Data.Get());
+				FGameplayEffectContextHandle ContextHandle = ASC->MakeEffectContext();
+				ContextHandle.AddSourceObject(this);
+				FGameplayEffectSpecHandle SpecHandle = ASC->MakeOutgoingSpec(InitEffect, 1.f, ContextHandle);
+				if (SpecHandle.IsValid())
+				{
+					ASC->ApplyGameplayEffectSpecToSelf(*SpecHandle.Data.Get());
+				}
 			}
 		}
 
@@ -127,8 +130,13 @@ void AGSGASCharacterPlayer::SetupGASInputComponent()
 {
 	if (IsValid(ASC) && IsValid(InputComponent))
 	{
-		// TODO: InputID <-> InputAction 매핑은 DataAsset으로 관리 예정
-		// 전투 시스템 구현 단계에서 어빌리티별 바인딩 추가
+		UEnhancedInputComponent* EnhancedInputComponent = CastChecked<UEnhancedInputComponent>(InputComponent);
+
+		// 약공 (InputID: 1)
+		EnhancedInputComponent->BindAction(LightAttackAction, ETriggerEvent::Started, this, &AGSGASCharacterPlayer::GASInputPressed, 1);
+
+		// 강공 (InputID: 2) — Shift 조합
+		EnhancedInputComponent->BindAction(HeavyAttackAction, ETriggerEvent::Started, this, &AGSGASCharacterPlayer::GASInputPressed, 2);
 	}
 }
 

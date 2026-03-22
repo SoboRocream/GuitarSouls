@@ -18,6 +18,7 @@ public:
 
 	virtual void Interact(AActor* InteractionActor) override;
 
+	UFUNCTION(BlueprintCallable, Category = "Weapon")
 	void EquipItem();
 	void Drop();
 
@@ -25,10 +26,7 @@ public:
 	float GetStaminaCost(const FGameplayTag& Tag) const;
 	float GetFinalDamage(const FGameplayTag& Tag) const;
 
-	FORCEINLINE class UGSGASWeaponCollisionComponent* GetWeaponCollision(int32 Index = 0) const
-	{
-		return WeaponCollisions.IsValidIndex(Index) ? WeaponCollisions[Index] : nullptr;
-	}
+	FORCEINLINE class UGSGASWeaponCollisionComponent* GetWeaponCollision() const { return MainWeaponCollision; }
 	FORCEINLINE FName GetEquipSocketName() const { return EquipSocketName; }
 	FORCEINLINE FName GetUnEquipSocketName() const { return UnEquipSocketName; }
 
@@ -42,7 +40,7 @@ protected:
  
 	// Main=0, Second=1 — 생성자에서 Main만 추가, Second는 필요 시 서브클래스에서 추가
 	UPROPERTY(VisibleAnywhere, Category = "Weapon")
-	TArray<TObjectPtr<class UGSGASWeaponCollisionComponent>> WeaponCollisions;
+	TObjectPtr<class UGSGASWeaponCollisionComponent> MainWeaponCollision;
  
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Weapon|Socket")
 	FName EquipSocketName;
