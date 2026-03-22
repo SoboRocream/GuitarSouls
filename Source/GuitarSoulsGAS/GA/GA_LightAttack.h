@@ -4,7 +4,6 @@
 
 #include "CoreMinimal.h"
 #include "Abilities/GameplayAbility.h"
-#include "Data/GSGASWeaponData.h"
 #include "GA_LightAttack.generated.h"
 
 /**
@@ -56,7 +55,7 @@ protected:
 	bool bHasNextComboInput = false;
 	
 	UPROPERTY()
-	TObjectPtr<UGSGASWeaponData> WeaponData;
+	TObjectPtr<class AGSGASWeapon> CachedWeapon;
 	
 	// EndAbility 시 반드시 해제
 	FDelegateHandle HitDelegateHandle;

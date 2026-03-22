@@ -18,9 +18,12 @@ public:
 
 	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
 
-	FORCEINLINE class UGSGASWeaponCollisionComponent* GetWeaponCollision() const { return WeaponCollision; }
-	FORCEINLINE class UGSGASWeaponData* GetWeaponData() const { return WeaponData; }
-
+	void SetEquippedWeapon(class AGSGASWeapon* InWeapon);
+	FORCEINLINE class AGSGASWeapon* GetEquippedWeapon() const { return EquippedWeapon; }
+	FORCEINLINE bool IsCombatEnabled() const { return bCombatEnabled; }
+	
+	void SetCombatEnabled(bool bEnabled);
+	
 	virtual float TakeDamage(float DamageAmount, const FDamageEvent& DamageEvent,
 		AController* EventInstigator, AActor* DamageCauser) override;
 protected:
@@ -34,12 +37,12 @@ protected:
 	UPROPERTY(EditAnywhere, Category=GAS)
 	TArray<TSubclassOf<class UGameplayAbility>> StartAbilities;
 
-	UPROPERTY(VisibleAnywhere, Category = "Collision")
-	TObjectPtr<class UGSGASWeaponCollisionComponent> WeaponCollision;
-
-	UPROPERTY(EditAnywhere, Category = "Weapon")
-	TObjectPtr<class UGSGASWeaponData> WeaponData;
-
+	// 무기
+	UPROPERTY(VisibleAnywhere, Category = "Weapon")
+	TObjectPtr<class AGSGASWeapon> EquippedWeapon;
+	
+	bool bCombatEnabled = false;
+	
 	UPROPERTY(EditAnywhere, Category = "GAS|Bridge")
 	TSubclassOf<class UGameplayEffect> TakeDamageBridgeEffectClass;
 };

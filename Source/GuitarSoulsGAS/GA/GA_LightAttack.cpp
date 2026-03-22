@@ -2,13 +2,14 @@
 
 
 #include "GA/GA_LightAttack.h"
+#include "GuitarSoulsGAS.h"
 #include "Character/GSGASCharacterBase.h"
+#include "Item/GSGASWeapon.h"
 #include "Component/GSGASWeaponCollisionComponent.h"
 #include "AbilitySystemComponent.h"
 #include "AbilitySystemBlueprintLibrary.h"
 #include "Abilities/Tasks/AbilityTask_PlayMontageAndWait.h"
 #include "Tags/GSGASGameplayTags.h"
-#include "GuitarSoulsGAS.h"
 
 const TArray<FName> UGA_LightAttack::ComboSectionNames =
 {
@@ -42,42 +43,32 @@ void UGA_LightAttack::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
 		return;
 	}
 
-	WeaponData = Character->GetWeaponData();
-	if (!WeaponData)
+	CachedWeapon = Character->GetEquippedWeapon();
+	if (!CachedWeapon)
 	{
-		GSGAS_LOG(LogGSGAS, Warning, TEXT("WeaponData is null on %s. EndAbility."), *Character->GetName());
+		GSGAS_LOG(LogGSGAS, Warning, TEXT("EquippedWeapon is null on %s. EndAbility."), *Character->GetName());
 		EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
 		return;
 	}
-	
-	const FGSGASAttackData* AttackData = WeaponData->GetAttackData(LightAttackTag);
-	if (!AttackData || !AttackData->Montage)
-	{
-		GSGAS_LOG(LogGSGAS, Warning, TEXT("AttackData or Montage is null. EndAbility."));
-		EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
-		return;
-	}
-	
-	UGSGASWeaponCollisionComponent* WeaponCollision = Character->GetWeaponCollision();
+
+	UGSGASWeaponCollisionComponent* WeaponCollision = CachedWeapon->GetWeaponCollision(0);
 	if (!WeaponCollision)
 	{
 		GSGAS_LOG(LogGSGAS, Warning, TEXT("WeaponCollision is null. EndAbility."));
 		EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
 		return;
 	}
-
-	// Effect 적용
+	
 	ApplyStaminaCost();
-
-	// OnHitActor 바인딩
+ 
 	HitDelegateHandle = WeaponCollision->OnHitActor.AddUObject(this, &UGA_LightAttack::OnWeaponHit);
-
-	// 태그 감지
+ 
 	UAbilitySystemComponent* ASC = GetAbilitySystemComponentFromActorInfo();
-	CollisionTagHandle = ASC->RegisterGameplayTagEvent(GSGASGameplayTags::Character_State_AttackCollisionActive,
-		EGameplayTagEventType::NewOrRemoved).AddUObject(this, &UGA_LightAttack::OnAttackCollisionTagChanged);
-
-	// 몽타주 제생
+	CollisionTagHandle = ASC->RegisterGameplayTagEvent(
+		GSGASGameplayTags::Character_State_AttackCollisionActive,
+		EGameplayTagEventType::NewOrRemoved)
+		.AddUObject(this, &UGA_LightAttack::OnAttackCollisionTagChanged);
+ 
 	PlayCurrentComboSection();
 }
 
@@ -88,10 +79,10 @@ void UGA_LightAttack::EndAbility(const FGameplayAbilitySpecHandle Handle, const 
 	{
 		if (AGSGASCharacterBase* Character = Cast<AGSGASCharacterBase>(ActorInfo->AvatarActor.Get()))
 		{
-			if (UGSGASWeaponCollisionComponent* WeaponCollision = Character->GetWeaponCollision())
+			if (UGSGASWeaponCollisionComponent* WeaponCollision = CachedWeapon->GetWeaponCollision(0))
 			{
 				WeaponCollision->OnHitActor.Remove(HitDelegateHandle);
- 
+ 		
 				if (WeaponCollision->IsCollisionEnabled())
 				{
 					WeaponCollision->TurnOffCollision();
@@ -114,7 +105,7 @@ void UGA_LightAttack::EndAbility(const FGameplayAbilitySpecHandle Handle, const 
 	CurrentComboIndex = 0;
 	bHasNextComboInput = false;
 	MontageTask = nullptr;
-	WeaponData = nullptr;
+	CachedWeapon = nullptr;
 	
 	Super::EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);
 }
@@ -150,20 +141,25 @@ FName UGA_LightAttack::GetCurrentSectionName() const
 
 void UGA_LightAttack::PlayCurrentComboSection()
 {
-	const FGSGASAttackData* AttackData = WeaponData->GetAttackData(LightAttackTag);
-	
+	UAnimMontage* Montage = CachedWeapon->GetMontageForTag(LightAttackTag);
+	if (!Montage)
+	{
+		GSGAS_LOG(LogGSGAS, Warning, TEXT("Montage is null for tag: %s. EndAbility."), *LightAttackTag.ToString());
+		EndAbility(GetCurrentAbilitySpecHandle(), GetCurrentActorInfo(), GetCurrentActivationInfo(), true, true);
+		return;
+	}
 	MontageTask = UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy(
 		this,
 		TEXT("LightAttackMontage"),
-		AttackData->Montage,
+		Montage,
 		1.f,
 		GetCurrentSectionName());
-
+ 
 	MontageTask->OnCompleted.AddDynamic(this, &UGA_LightAttack::OnMontageCompleted);
 	MontageTask->OnInterrupted.AddDynamic(this, &UGA_LightAttack::OnMontageInterrupted);
 	MontageTask->OnCancelled.AddDynamic(this, &UGA_LightAttack::OnMontageInterrupted);
 	MontageTask->ReadyForActivation();
-
+ 
 	GSGAS_LOG(LogGSGAS, Log, TEXT("Playing section: %s"), *GetCurrentSectionName().ToString());
 }
 
@@ -175,12 +171,6 @@ void UGA_LightAttack::ApplyStaminaCost()
 		return;
 	}
  
-	const FGSGASAttackData* AttackData = WeaponData->GetAttackData(LightAttackTag);
-	if (!AttackData)
-	{
-		return;
-	}
- 
 	FGameplayEffectSpecHandle SpecHandle = MakeOutgoingGameplayEffectSpec(StaminaCostEffectClass);
 	if (!SpecHandle.IsValid())
 	{
@@ -188,7 +178,8 @@ void UGA_LightAttack::ApplyStaminaCost()
 		return;
 	}
  
-	SpecHandle.Data->SetSetByCallerMagnitude(GSGASGameplayTags::Data_StaminaCost, -AttackData->StaminaCost);
+	const float StaminaCost = CachedWeapon->GetStaminaCost(LightAttackTag);
+	SpecHandle.Data->SetSetByCallerMagnitude(GSGASGameplayTags::Data_StaminaCost, -StaminaCost);
  
 	const FActiveGameplayEffectHandle ActiveHandle = ApplyGameplayEffectSpecToOwner(
 		GetCurrentAbilitySpecHandle(), GetCurrentActorInfo(), GetCurrentActivationInfo(), SpecHandle);
@@ -199,7 +190,7 @@ void UGA_LightAttack::ApplyStaminaCost()
 		return;
 	}
  
-	GSGAS_LOG(LogGSGAS, Log, TEXT("StaminaCost applied: %.1f"), AttackData->StaminaCost);
+	GSGAS_LOG(LogGSGAS, Log, TEXT("StaminaCost applied: %.1f"), StaminaCost);
 }
 
 void UGA_LightAttack::ApplyDamageToTarget(const FHitResult& HitResult)
@@ -207,12 +198,6 @@ void UGA_LightAttack::ApplyDamageToTarget(const FHitResult& HitResult)
 	if (!DamageEffectClass)
 	{
 		GSGAS_LOG(LogGSGAS, Warning, TEXT("DamageEffectClass is null."));
-		return;
-	}
- 
-	const FGSGASAttackData* AttackData = WeaponData->GetAttackData(LightAttackTag);
-	if (!AttackData)
-	{
 		return;
 	}
  
@@ -237,7 +222,7 @@ void UGA_LightAttack::ApplyDamageToTarget(const FHitResult& HitResult)
 		return;
 	}
  
-	const float FinalDamage = WeaponData->BaseDamage * AttackData->DamageMultiplier;
+	const float FinalDamage = CachedWeapon->GetFinalDamage(LightAttackTag);
 	SpecHandle.Data->SetSetByCallerMagnitude(GSGASGameplayTags::Data_Damage, FinalDamage);
  
 	FGameplayAbilityTargetDataHandle TargetDataHandle;
@@ -290,13 +275,12 @@ void UGA_LightAttack::OnWeaponHit(const FHitResult& HitResult)
 
 void UGA_LightAttack::OnAttackCollisionTagChanged(const FGameplayTag Tag, int32 NewCount)
 {
-	AGSGASCharacterBase* Character = Cast<AGSGASCharacterBase>(GetAvatarActorFromActorInfo());
-	if (!Character)
+	if (!CachedWeapon)
 	{
 		return;
 	}
  
-	UGSGASWeaponCollisionComponent* WeaponCollision = Character->GetWeaponCollision();
+	UGSGASWeaponCollisionComponent* WeaponCollision = CachedWeapon->GetWeaponCollision(0);
 	if (!WeaponCollision)
 	{
 		return;

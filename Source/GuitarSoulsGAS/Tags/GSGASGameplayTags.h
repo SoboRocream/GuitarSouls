@@ -6,12 +6,16 @@
 
 namespace GSGASGameplayTags
 {
-	// ── Character ──────────────────────────────────────────────────────────────
+	// ── Character State ────────────────────────────────────────────────────────
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Character_State_ComboWindow);
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Character_State_Parrying);
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Character_State_Parried);
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Character_State_Death);
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Character_State_AttackCollisionActive);
-
+ 
+	// ── Character Action ───────────────────────────────────────────────────────
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Character_Action_HitReaction);
+ 
 	// ── Data ──────────────────────────────────────────────────────────────────
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Data_Damage);
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Data_StaminaCost);

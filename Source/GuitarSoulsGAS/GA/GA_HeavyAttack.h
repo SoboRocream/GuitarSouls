@@ -4,7 +4,6 @@
 
 #include "CoreMinimal.h"
 #include "Abilities/GameplayAbility.h"
-#include "Data/GSGASWeaponData.h"
 #include "GA_HeavyAttack.generated.h"
 
 /**
@@ -48,7 +47,7 @@ protected:
 	TObjectPtr<class UAbilityTask_PlayMontageAndWait> MontageTask;
 
 	UPROPERTY()
-	TObjectPtr<UGSGASWeaponData> WeaponData;
+	TObjectPtr<class AGSGASWeapon> CachedWeapon;
 	
 	FDelegateHandle HitDelegateHandle;
 	FDelegateHandle CollisionTagHandle;

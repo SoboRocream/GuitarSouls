@@ -2,7 +2,7 @@
 
 
 #include "Character/GSGASCharacterBase.h"
-#include "Component/GSGASWeaponCollisionComponent.h"
+#include "Item/GSGASWeapon.h"
 #include "AbilitySystemComponent.h"
 #include "GuitarSoulsGAS.h"
 
@@ -10,7 +10,6 @@
 AGSGASCharacterBase::AGSGASCharacterBase()
 {
 	ASC = nullptr;
-	WeaponCollision = CreateDefaultSubobject<UGSGASWeaponCollisionComponent>(TEXT("WeaponCollision"));
 }
 
 UAbilitySystemComponent* AGSGASCharacterBase::GetAbilitySystemComponent() const
@@ -18,8 +17,23 @@ UAbilitySystemComponent* AGSGASCharacterBase::GetAbilitySystemComponent() const
 	return ASC;
 }
 
+void AGSGASCharacterBase::SetEquippedWeapon(class AGSGASWeapon* InWeapon)
+{
+	if (EquippedWeapon)
+	{
+		EquippedWeapon->Drop();
+	}
+	EquippedWeapon = InWeapon;
+	GSGAS_LOG(LogGSGAS, Log, TEXT("EquippedWeapon set on %s."), *GetName());
+}
+
+void AGSGASCharacterBase::SetCombatEnabled(bool bEnabled)
+{
+	bCombatEnabled = bEnabled;
+}
+
 float AGSGASCharacterBase::TakeDamage(float DamageAmount, const FDamageEvent& DamageEvent, AController* EventInstigator,
-	AActor* DamageCauser)
+                                      AActor* DamageCauser)
 {
 	// 레거시 적이 ApplyPointDamage를 쏠 때 GE로 변환하는 임시 브릿지.
 	// 적/보스 GAS 전환 완료 후 제거.
@@ -68,11 +82,5 @@ float AGSGASCharacterBase::TakeDamage(float DamageAmount, const FDamageEvent& Da
 void AGSGASCharacterBase::BeginPlay()
 {
 	Super::BeginPlay();
- 
-	// 자신을 트레이스 무시 대상으로 등록
-	WeaponCollision->AddIgnoreActor(this);
-	
-	WeaponCollision->SetWeaponMesh(GetMesh());
- 
-	GSGAS_LOG(LogGSGAS, Log, TEXT("WeaponCollision initialized on %s."), *GetName());
+	GSGAS_LOG(LogGSGAS, Log, TEXT("GSGASCharacterBase BeginPlay on %s."), *GetName());
 }
