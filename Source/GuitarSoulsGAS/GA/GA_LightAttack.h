@@ -35,6 +35,7 @@ protected:
  
 	void OnWeaponHit(const FHitResult& HitResult);
 	void OnAttackCollisionTagChanged(const FGameplayTag Tag, int32 NewCount);
+	void OnComboWindowTagChanged(const FGameplayTag Tag, int32 NewCount);
 
 protected:
 	UPROPERTY(EditDefaultsOnly, Category = "Attack")
@@ -52,8 +53,10 @@ protected:
 	static const TArray<FName> ComboSectionNames;
  
 	int32 CurrentComboIndex = 0;
-	bool bHasNextComboInput = false;
-	
+
+	bool bIsComboInputQueued = false;
+	FDelegateHandle ComboWindowTagHandle;
+
 	UPROPERTY()
 	TObjectPtr<class AGSGASWeapon> CachedWeapon;
 	

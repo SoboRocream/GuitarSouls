@@ -68,7 +68,14 @@ void UGA_LightAttack::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
 		GSGASGameplayTags::Character_State_AttackCollisionActive,
 		EGameplayTagEventType::NewOrRemoved)
 		.AddUObject(this, &UGA_LightAttack::OnAttackCollisionTagChanged);
- 
+
+	ComboWindowTagHandle = ASC->RegisterGameplayTagEvent(
+		GSGASGameplayTags::Character_State_ComboWindow,
+		EGameplayTagEventType::NewOrRemoved)
+		.AddUObject(this, &UGA_LightAttack::OnComboWindowTagChanged);
+
+	bIsComboInputQueued = false;
+	
 	PlayCurrentComboSection();
 }
 
@@ -94,13 +101,19 @@ void UGA_LightAttack::EndAbility(const FGameplayAbilitySpecHandle Handle, const 
 			GSGASGameplayTags::Character_State_AttackCollisionActive,
 			EGameplayTagEventType::NewOrRemoved)
 			.Remove(CollisionTagHandle);
+		ASC->RegisterGameplayTagEvent(
+			GSGASGameplayTags::Character_State_ComboWindow,
+			EGameplayTagEventType::NewOrRemoved)
+			.Remove(ComboWindowTagHandle);
 	}
- 
+    
+	ComboWindowTagHandle.Reset();
+	bIsComboInputQueued = false;
+	
 	HitDelegateHandle.Reset();
 	CollisionTagHandle.Reset();
  
 	CurrentComboIndex = 0;
-	bHasNextComboInput = false;
 	MontageTask = nullptr;
 	CachedWeapon = nullptr;
 	
@@ -113,16 +126,14 @@ void UGA_LightAttack::InputPressed(const FGameplayAbilitySpecHandle Handle, cons
 	Super::InputPressed(Handle, ActorInfo, ActivationInfo);
 
 	UAbilitySystemComponent* ASC = GetAbilitySystemComponentFromActorInfo();
-	if (!ASC)
-	{
-		return;
-	}
+	if (!ASC) return;
 
 	if (ASC->HasMatchingGameplayTag(GSGASGameplayTags::Character_State_ComboWindow))
 	{
-		bHasNextComboInput = true;
-		GSGAS_LOG(LogGSGAS, Log, TEXT("ComboInput accepted. Index: %d"), CurrentComboIndex);
+		bIsComboInputQueued = true;
+		GSGAS_LOG(LogGSGAS, Log, TEXT("ComboInput queued. Index: %d"), CurrentComboIndex);
 	}
+	
 }
 
 FName UGA_LightAttack::GetCurrentSectionName() const
@@ -242,20 +253,8 @@ void UGA_LightAttack::ApplyDamageToTarget(const FHitResult& HitResult)
 
 void UGA_LightAttack::OnMontageCompleted()
 {
-	if (bHasNextComboInput && CurrentComboIndex + 1 < ComboSectionNames.Num())
-	{
-		bHasNextComboInput = false;
-		CurrentComboIndex++;
-		ApplyStaminaCost();
-		PlayCurrentComboSection();
-		GSGAS_LOG(LogGSGAS, Log, TEXT("Combo continue. Index: %d"), CurrentComboIndex);
-	}
-	else
-	{
-		GSGAS_LOG(LogGSGAS, Log, TEXT("Combo end."));
-		EndAbility(GetCurrentAbilitySpecHandle(), GetCurrentActorInfo(),
-			GetCurrentActivationInfo(), true, false);
-	}
+	GSGAS_LOG(LogGSGAS, Log, TEXT("Combo end."));
+	EndAbility(GetCurrentAbilitySpecHandle(), GetCurrentActorInfo(), GetCurrentActivationInfo(), true, false);
 }
 
 void UGA_LightAttack::OnMontageInterrupted()
@@ -290,5 +289,27 @@ void UGA_LightAttack::OnAttackCollisionTagChanged(const FGameplayTag Tag, int32 
 	else
 	{
 		WeaponCollision->TurnOffCollision();
+	}
+}
+
+void UGA_LightAttack::OnComboWindowTagChanged(const FGameplayTag Tag, int32 NewCount)
+{
+	if (NewCount == 0 && bIsComboInputQueued)
+	{
+		bIsComboInputQueued = false; // 플래그 초기화
+
+		if (CurrentComboIndex + 1 >= ComboSectionNames.Num())
+		{
+			GSGAS_LOG(LogGSGAS, Log, TEXT("No more combo sections."));
+			return;
+		}
+
+		CurrentComboIndex++;
+		ApplyStaminaCost();
+
+		const FName NextSection = GetCurrentSectionName();
+		MontageJumpToSection(NextSection);
+
+		GSGAS_LOG(LogGSGAS, Log, TEXT("Combo jumped to section: %s"), *NextSection.ToString());
 	}
 }
