@@ -19,6 +19,8 @@ public:
 
 	virtual void PossessedBy(AController* NewController) override;
 
+	FORCEINLINE float GetInteractRadius() const { return InteractRadius; }
+
 protected:
 	virtual void BeginPlay() override;
 	virtual void SetupPlayerInputComponent(UInputComponent* PlayerInputComponent) override;
@@ -56,9 +58,24 @@ protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<class UInputAction> HeavyAttackAction;
+
+	UPROPERTY(EditAnywhere, Category=Interact)
+	TObjectPtr<class UInputAction> InteractAction;
+	
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category=Interact)
+	TObjectPtr<class USphereComponent> InteractDetectionSphere;
+
+	UPROPERTY(EditDefaultsOnly, Category=Interact)
+	float InteractRadius = 100.f;
 	
 	void Move(const FInputActionValue& Value);
 	void Look(const FInputActionValue& Value);
+
+	UFUNCTION()
+	void OnInteractSphereBeginOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
+
+	UFUNCTION()
+	void OnInteractSphereEndOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
 
 	// Character Dead Section
 protected:
@@ -78,4 +95,6 @@ protected:
 
 	UPROPERTY()
 	TObjectPtr<class UGSGASPlayerHUDWidget> PlayerHUDWidget;
+
+
 };

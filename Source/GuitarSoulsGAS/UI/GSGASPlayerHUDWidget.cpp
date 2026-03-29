@@ -8,6 +8,14 @@
 #include "UI/GSPotionWidget.h"
 #include "Player/GSGASPlayerState.h"
 
+void UGSGASPlayerHUDWidget::ShowInteractUI(const FText& InteractText)
+{
+}
+
+void UGSGASPlayerHUDWidget::HideInteractUI()
+{
+}
+
 void UGSGASPlayerHUDWidget::InitializeWidget(UAbilitySystemComponent* InASC)
 {
 	const UGSAttributeSet* AttributeSet = InASC->GetSet<UGSAttributeSet>();

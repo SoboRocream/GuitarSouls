@@ -8,9 +8,13 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
+#include "GuitarSoulsGAS.h"
 #include "Player/GSGASPlayerState.h"
 #include "Abilities/GameplayAbility.h"
 #include "Components/CapsuleComponent.h"
+#include "Components/SphereComponent.h"
+#include "Data/GSGASCollision.h"
+#include "Interface/GSGASInteractInterface.h"
 #include "Tags/GSGASGameplayTags.h"
 #include "UI/GSGASPlayerHUDWidget.h"
 
@@ -36,6 +40,15 @@ AGSGASCharacterPlayer::AGSGASCharacterPlayer()
 	GetCharacterMovement()->RotationRate = FRotator(0.f, 500.f, 0.f);
 	GetCharacterMovement()->MaxWalkSpeed = 400.f;
 	GetCharacterMovement()->BrakingDecelerationWalking = 2000.f;
+
+	InteractDetectionSphere = CreateDefaultSubobject<USphereComponent>(TEXT("InteractDetectionSphere"));
+	InteractDetectionSphere->SetupAttachment(RootComponent);
+	InteractDetectionSphere->SetSphereRadius(InteractRadius);
+	InteractDetectionSphere->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
+	InteractDetectionSphere->SetCollisionObjectType(ECC_WorldDynamic);
+	InteractDetectionSphere->SetCollisionResponseToAllChannels(ECR_Ignore);
+	InteractDetectionSphere->SetCollisionResponseToChannel(
+		CCHANNEL_GSGAS_INTERACTION, ECR_Overlap);
 }
 
 void AGSGASCharacterPlayer::PossessedBy(AController* NewController)
@@ -113,6 +126,9 @@ void AGSGASCharacterPlayer::BeginPlay()
 			}
 		}
 	}
+
+	InteractDetectionSphere->OnComponentBeginOverlap.AddDynamic(this, &AGSGASCharacterPlayer::OnInteractSphereBeginOverlap);
+	InteractDetectionSphere->OnComponentEndOverlap.AddDynamic(this, &AGSGASCharacterPlayer::OnInteractSphereEndOverlap);
 }
 
 void AGSGASCharacterPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
@@ -137,6 +153,9 @@ void AGSGASCharacterPlayer::SetupGASInputComponent()
 
 		// 강공 (InputID: 2) — Shift 조합
 		EnhancedInputComponent->BindAction(HeavyAttackAction, ETriggerEvent::Started, this, &AGSGASCharacterPlayer::GASInputPressed, 2);
+
+		// 상호작용 (InputID: 3)
+		EnhancedInputComponent->BindAction(InteractAction, ETriggerEvent::Started,this, &AGSGASCharacterPlayer::GASInputPressed, 3);
 	}
 }
 
@@ -193,6 +212,36 @@ void AGSGASCharacterPlayer::Look(const FInputActionValue& Value)
 	{
 		AddControllerYawInput(LookAxisVector.X);
 		AddControllerPitchInput(LookAxisVector.Y);
+	}
+}
+
+void AGSGASCharacterPlayer::OnInteractSphereBeginOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor,
+	UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+{
+	if (!OtherActor) return;
+
+	if (Cast<IGSGASInteractInterface>(OtherActor))
+	{
+		if (PlayerHUDWidget)
+		{
+			PlayerHUDWidget->ShowInteractUI(FText::FromString(TEXT("[E] 상호작용")));
+		}
+		GSGAS_LOG(LogGSGAS, Log, TEXT("Interact target entered: %s"), *OtherActor->GetName());
+	}
+}
+
+void AGSGASCharacterPlayer::OnInteractSphereEndOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor,
+	UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
+{
+	if (!OtherActor) return;
+
+	if (Cast<IGSGASInteractInterface>(OtherActor))
+	{
+		if (PlayerHUDWidget)
+		{
+			PlayerHUDWidget->HideInteractUI();
+		}
+		GSGAS_LOG(LogGSGAS, Log, TEXT("Interact target exited: %s"), *OtherActor->GetName());
 	}
 }
 

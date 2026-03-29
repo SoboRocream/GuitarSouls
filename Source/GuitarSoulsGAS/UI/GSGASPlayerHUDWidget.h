@@ -14,6 +14,11 @@ UCLASS()
 class GUITARSOULSGAS_API UGSGASPlayerHUDWidget : public UGSGASUserWidget
 {
 	GENERATED_BODY()
+
+public:
+	void ShowInteractUI(const FText& InteractText);
+	void HideInteractUI();
+	
 protected:
 	virtual void InitializeWidget(UAbilitySystemComponent* InASC) override;
 
@@ -26,6 +31,9 @@ protected:
 
 	UPROPERTY(meta = (BindWidget), BlueprintReadWrite)
 	TObjectPtr<class UGSPotionWidget> PotionWidget;
+
+	UPROPERTY(meta = (BindWidgetOptional), BlueprintReadWrite)
+	TObjectPtr<class UTextBlock> InteractPromptText;
 
 private:
 	void OnHealthChanged(const FOnAttributeChangeData& Data);

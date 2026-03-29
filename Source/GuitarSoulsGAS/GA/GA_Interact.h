@@ -13,5 +13,16 @@ UCLASS()
 class GUITARSOULSGAS_API UGA_Interact : public UGameplayAbility
 {
 	GENERATED_BODY()
+
+public:
+	UGA_Interact();
+
+	virtual void OnAvatarSet(const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilitySpec& Spec) override;
+	virtual void ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData) override;
+
+protected:
+	UPROPERTY(EditDefaultsOnly, Category = Interact)
+	float InteractRadius = 100.f;
+
 	
 };
