@@ -191,7 +191,7 @@ void AGSGASCharacterPlayer::GASInputReleased(int32 InputId)
 
 void AGSGASCharacterPlayer::Move(const FInputActionValue& Value)
 {
-	FVector2D MovementVector = Value.Get<FVector2D>();
+	LastMovementInput = Value.Get<FVector2D>();
 	if (Controller != nullptr)
 	{
 		const FRotator Rotation = Controller->GetControlRotation();
@@ -200,8 +200,8 @@ void AGSGASCharacterPlayer::Move(const FInputActionValue& Value)
 		const FVector ForwardDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
 		const FVector RightDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
 
-		AddMovementInput(ForwardDirection, MovementVector.X);
-		AddMovementInput(RightDirection, MovementVector.Y);
+		AddMovementInput(ForwardDirection, LastMovementInput.X);
+		AddMovementInput(RightDirection, LastMovementInput.Y);
 	}
 }
 

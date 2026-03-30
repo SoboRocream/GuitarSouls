@@ -12,6 +12,7 @@ namespace GSGASGameplayTags
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Character_State_Parried);
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Character_State_Death);
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Character_State_AttackCollisionActive);
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Character_State_LockOn);
  
 	// ── Character Action ───────────────────────────────────────────────────────
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Character_Action_HitReaction);

@@ -20,6 +20,7 @@ public:
 	virtual void PossessedBy(AController* NewController) override;
 
 	FORCEINLINE float GetInteractRadius() const { return InteractRadius; }
+	FORCEINLINE FVector2D GetLastMovementInput() const { return LastMovementInput; }
 
 protected:
 	virtual void BeginPlay() override;
@@ -67,10 +68,12 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly, Category=Interact)
 	float InteractRadius = 100.f;
+
+	FVector2D LastMovementInput = FVector2D::ZeroVector;
 	
 	void Move(const FInputActionValue& Value);
 	void Look(const FInputActionValue& Value);
-
+	
 	UFUNCTION()
 	void OnInteractSphereBeginOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
 

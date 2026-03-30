@@ -28,9 +28,17 @@ public:
 	
 	virtual void ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData) override;
 	virtual void EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled) override;
-	virtual void CancelAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateCancelAbility) override;
-	virtual void InputPressed(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo) override;
+	
+protected:
+	UFUNCTION()
+	void OnMontageCompleted();
 
+	UFUNCTION()
+	void OnMontageInterrupted();
+
+	UAnimMontage* SelectMontage(const FVector2D& MovementInput, bool bIsLockOn) const;
+	void ApplyRollRotation(const FVector2D& MovementInput, ACharacter* Character) const;
+	
 protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Roll")
 	TObjectPtr<UAnimMontage> ForwardMontage = nullptr;
@@ -43,5 +51,7 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Roll")
 	TObjectPtr<UAnimMontage> RightMontage = nullptr;
-	
+
+	UPROPERTY()
+	TObjectPtr<class UAbilityTask_PlayMontageAndWait> MontageTask;
 };
