@@ -156,6 +156,12 @@ void AGSGASCharacterPlayer::SetupGASInputComponent()
 
 		// 상호작용 (InputID: 3)
 		EnhancedInputComponent->BindAction(InteractAction, ETriggerEvent::Started,this, &AGSGASCharacterPlayer::GASInputPressed, 3);
+
+		// 회피 (InputID: 4)
+		EnhancedInputComponent->BindAction(RollAction, ETriggerEvent::Started,this, &AGSGASCharacterPlayer::GASInputPressed, 4);
+
+		// 락온 (InputID: 5
+		EnhancedInputComponent->BindAction(LockOnAction, ETriggerEvent::Started,this, &AGSGASCharacterPlayer::GASInputPressed, 5);
 	}
 }
 
@@ -191,7 +197,8 @@ void AGSGASCharacterPlayer::GASInputReleased(int32 InputId)
 
 void AGSGASCharacterPlayer::Move(const FInputActionValue& Value)
 {
-	LastMovementInput = Value.Get<FVector2D>();
+	const FVector2D CurrentMovementInput = Value.Get<FVector2D>();
+	
 	if (Controller != nullptr)
 	{
 		const FRotator Rotation = Controller->GetControlRotation();
@@ -202,6 +209,8 @@ void AGSGASCharacterPlayer::Move(const FInputActionValue& Value)
 
 		AddMovementInput(ForwardDirection, LastMovementInput.X);
 		AddMovementInput(RightDirection, LastMovementInput.Y);
+
+		LastMovementInput = CurrentMovementInput;
 	}
 }
 

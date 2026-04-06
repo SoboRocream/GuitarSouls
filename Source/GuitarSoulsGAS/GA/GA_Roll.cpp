@@ -29,26 +29,18 @@ void UGA_Roll::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FG
 
 	const FVector2D MovementInput = Character->GetLastMovementInput();
 	const bool bIsLockOn = Character->GetAbilitySystemComponent()->HasMatchingGameplayTag(GSGASGameplayTags::Character_State_LockOn);
-
-	UAnimMontage* SelectedMontage = SelectMontage(MovementInput, bIsLockOn);
-	if (!SelectedMontage)
-	{
-		// 백스텝 에셋 미보유 등 몽타주 없는 경우 조기 종료
-		GSGAS_LOG(LogGSGAS, Warning, TEXT("Roll montage is null. EndAbility."));
-		EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
-		return;
-	}
-
+	
 	if (!MovementInput.IsNearlyZero())
 	{
 		ApplyRollRotation(MovementInput, Character);
 	}
-
-	MontageTask = UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy(this, TEXT("RollMontage"), SelectedMontage, 1.f);
-
+	
+	MontageTask = UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy(this, TEXT("RollMontage"), ForwardMontage, 1.f);
 	MontageTask->OnCompleted.AddDynamic(this, &UGA_Roll::OnMontageCompleted);
 	MontageTask->OnInterrupted.AddDynamic(this, &UGA_Roll::OnMontageInterrupted);
 	MontageTask->OnCancelled.AddDynamic(this, &UGA_Roll::OnMontageInterrupted);
+	
+	ApplyStaminaCost();
 	MontageTask->ReadyForActivation();
 
 	GSGAS_LOG(LogGSGAS, Log, TEXT("Roll started."));
@@ -71,33 +63,6 @@ void UGA_Roll::OnMontageInterrupted()
 	EndAbility(GetCurrentAbilitySpecHandle(), GetCurrentActorInfo(), GetCurrentActivationInfo(), true, true);
 }
 
-UAnimMontage* UGA_Roll::SelectMontage(const FVector2D& MovementInput, bool bIsLockOn) const
-{
-	if (MovementInput.IsNearlyZero())
-	{
-		if (bIsLockOn)
-		{
-			// TODO: 백스텝 에셋 추가 후 BackwardMontage 반환
-			// return BackwardMontage;
-			GSGAS_LOG(LogGSGAS, Log, TEXT("Backstep: no asset yet."));
-			return nullptr;
-		}
-		return ForwardMontage;
-	}
-
-	const float AbsX = FMath::Abs(MovementInput.X);
-	const float AbsY = FMath::Abs(MovementInput.Y);
-	
-	if (AbsX >= AbsY)
-	{
-		return MovementInput.X >= 0.f ? ForwardMontage : BackwardMontage;
-	}
-	else
-	{
-		return MovementInput.Y >= 0.f ? RightMontage : LeftMontage;
-	}
-}
-
 void UGA_Roll::ApplyRollRotation(const FVector2D& MovementInput, ACharacter* Character) const
 {
 	if (!Character || !Character->GetController()) return;
@@ -106,11 +71,39 @@ void UGA_Roll::ApplyRollRotation(const FVector2D& MovementInput, ACharacter* Cha
 	const FVector ForwardDir = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
 	const FVector RightDir = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
 
-	const FVector InputDir =
-		(ForwardDir * MovementInput.X + RightDir * MovementInput.Y).GetSafeNormal();
+	const FVector InputDir = (ForwardDir * MovementInput.X + RightDir * MovementInput.Y).GetSafeNormal();
 
 	if (!InputDir.IsNearlyZero())
 	{
 		Character->SetActorRotation(InputDir.Rotation());
 	}
+}
+
+void UGA_Roll::ApplyStaminaCost()
+{
+	if (!StaminaCostEffectClass)
+	{
+		GSGAS_LOG(LogGSGAS, Warning, TEXT("StaminaCostEffectClass is null."));
+		return;
+	}
+ 
+	FGameplayEffectSpecHandle SpecHandle = MakeOutgoingGameplayEffectSpec(StaminaCostEffectClass);
+	if (!SpecHandle.IsValid())
+	{
+		GSGAS_LOG(LogGSGAS, Warning, TEXT("StaminaCostEffectClass SpecHandle is invalid."));
+		return;
+	}
+	
+	SpecHandle.Data->SetSetByCallerMagnitude(GSGASGameplayTags::Data_StaminaCost, -StaminaCost);
+ 
+	const FActiveGameplayEffectHandle ActiveHandle = ApplyGameplayEffectSpecToOwner(
+		GetCurrentAbilitySpecHandle(), GetCurrentActorInfo(), GetCurrentActivationInfo(), SpecHandle);
+ 
+	if (!ActiveHandle.WasSuccessfullyApplied())
+	{
+		GSGAS_LOG(LogGSGAS, Warning, TEXT("StaminaCostEffectClass GE failed to apply."));
+		return;
+	}
+ 
+	GSGAS_LOG(LogGSGAS, Log, TEXT("StaminaCostEffectClass applied: %.1f"), StaminaCost);
 }

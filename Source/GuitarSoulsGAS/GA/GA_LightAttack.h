@@ -25,7 +25,6 @@ protected:
 	FName GetCurrentSectionName() const;
 	void PlayCurrentComboSection();
 	void ApplyStaminaCost();
-	void ApplyDamageToTarget(const FHitResult& HitResult);
 
 	UFUNCTION()
 	void OnMontageCompleted();

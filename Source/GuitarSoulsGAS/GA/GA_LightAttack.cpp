@@ -201,7 +201,20 @@ void UGA_LightAttack::ApplyStaminaCost()
 	GSGAS_LOG(LogGSGAS, Log, TEXT("StaminaCost applied: %.1f"), StaminaCost);
 }
 
-void UGA_LightAttack::ApplyDamageToTarget(const FHitResult& HitResult)
+void UGA_LightAttack::OnMontageCompleted()
+{
+	GSGAS_LOG(LogGSGAS, Log, TEXT("Combo end."));
+	EndAbility(GetCurrentAbilitySpecHandle(), GetCurrentActorInfo(), GetCurrentActivationInfo(), true, false);
+}
+
+void UGA_LightAttack::OnMontageInterrupted()
+{
+	GSGAS_LOG(LogGSGAS, Log, TEXT("Montage interrupted."));
+	EndAbility(GetCurrentAbilitySpecHandle(), GetCurrentActorInfo(),
+		GetCurrentActivationInfo(), true, true);
+}
+
+void UGA_LightAttack::OnWeaponHit(const FHitResult& HitResult)
 {
 	if (!DamageEffectClass)
 	{
@@ -249,24 +262,7 @@ void UGA_LightAttack::ApplyDamageToTarget(const FHitResult& HitResult)
 	}
  
 	GSGAS_LOG(LogGSGAS, Log, TEXT("Damage applied to %s: %.1f"), *HitActor->GetName(), FinalDamage);
-}
 
-void UGA_LightAttack::OnMontageCompleted()
-{
-	GSGAS_LOG(LogGSGAS, Log, TEXT("Combo end."));
-	EndAbility(GetCurrentAbilitySpecHandle(), GetCurrentActorInfo(), GetCurrentActivationInfo(), true, false);
-}
-
-void UGA_LightAttack::OnMontageInterrupted()
-{
-	GSGAS_LOG(LogGSGAS, Log, TEXT("Montage interrupted."));
-	EndAbility(GetCurrentAbilitySpecHandle(), GetCurrentActorInfo(),
-		GetCurrentActivationInfo(), true, true);
-}
-
-void UGA_LightAttack::OnWeaponHit(const FHitResult& HitResult)
-{
-	ApplyDamageToTarget(HitResult);
 }
 
 void UGA_LightAttack::OnAttackCollisionTagChanged(const FGameplayTag Tag, int32 NewCount)

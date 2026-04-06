@@ -43,7 +43,6 @@ void UGA_LockOn::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const 
 	{
 		// 락온 해제
 		TargetingComp->StopLockOn();
-		ASC->RemoveLooseGameplayTag(GSGASGameplayTags::Character_State_LockOn);
 		GSGAS_LOG(LogGSGAS, Log, TEXT("LockOn released."));
 	}
 	else
@@ -54,7 +53,6 @@ void UGA_LockOn::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const 
 		// LockOnTarget() 내부에서 타겟을 찾지 못하면 bIsLockOn이 false로 유지됨
 		if (TargetingComp->IsLockedOn())
 		{
-			ASC->AddLooseGameplayTag(GSGASGameplayTags::Character_State_LockOn);
 			GSGAS_LOG(LogGSGAS, Log, TEXT("LockOn acquired."));
 		}
 		else

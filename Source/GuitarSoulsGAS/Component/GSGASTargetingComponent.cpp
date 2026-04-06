@@ -5,6 +5,7 @@
 
 #include "AbilitySystemComponent.h"
 #include "AbilitySystemBlueprintLibrary.h"
+#include "AbilitySystemInterface.h"
 #include "GuitarSoulsGAS.h"
 #include "Data/GSGASCollision.h"
 #include "GameFramework/Character.h"
@@ -81,6 +82,15 @@ void UGSGASTargetingComponent::LockOn()
 	}
 
 	OrientCamera();
+
+	if (IAbilitySystemInterface* ASCInterface = Cast<IAbilitySystemInterface>(GetOwner()))
+	{
+		if (UAbilitySystemComponent* ASC = ASCInterface->GetAbilitySystemComponent())
+		{
+			ASC->AddLooseGameplayTag(GSGASGameplayTags::Character_State_LockOn);
+		}
+	}
+	
 	GSGAS_LOG(LogGSGAS, Log, TEXT("LockOn: %s"), *LockedTargetActor->GetName());
 
 }
@@ -97,6 +107,14 @@ void UGSGASTargetingComponent::StopLockOn()
 	SetComponentTickEnabled(false);
 
 	OrientMovement();
+
+	if (IAbilitySystemInterface* ASCInterface = Cast<IAbilitySystemInterface>(GetOwner()))
+	{
+		if (UAbilitySystemComponent* ASC = ASCInterface->GetAbilitySystemComponent())
+		{
+			ASC->RemoveLooseGameplayTag(GSGASGameplayTags::Character_State_LockOn);
+		}
+	}
 	GSGAS_LOG(LogGSGAS, Log, TEXT("LockOn stopped."));
 }
 

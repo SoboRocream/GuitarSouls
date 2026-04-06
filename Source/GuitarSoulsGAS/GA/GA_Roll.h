@@ -35,23 +35,20 @@ protected:
 
 	UFUNCTION()
 	void OnMontageInterrupted();
-
-	UAnimMontage* SelectMontage(const FVector2D& MovementInput, bool bIsLockOn) const;
+	
 	void ApplyRollRotation(const FVector2D& MovementInput, ACharacter* Character) const;
+	void ApplyStaminaCost();
 	
 protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Roll")
 	TObjectPtr<UAnimMontage> ForwardMontage = nullptr;
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Roll")
-	TObjectPtr<UAnimMontage> BackwardMontage = nullptr;
-
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Roll")
-	TObjectPtr<UAnimMontage> LeftMontage = nullptr;
-
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Roll")
-	TObjectPtr<UAnimMontage> RightMontage = nullptr;
-
 	UPROPERTY()
 	TObjectPtr<class UAbilityTask_PlayMontageAndWait> MontageTask;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Roll")
+	TSubclassOf<UGameplayEffect> StaminaCostEffectClass;
+	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Roll")
+	float StaminaCost = 15.f;
 };
