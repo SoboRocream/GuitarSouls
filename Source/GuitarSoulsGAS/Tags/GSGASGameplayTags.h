@@ -16,6 +16,8 @@ namespace GSGASGameplayTags
  
 	// ── Character Action ───────────────────────────────────────────────────────
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Character_Action_HitReaction);
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Character_Action_Interact);
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Character_Action_Roll);
  
 	// ── Data ──────────────────────────────────────────────────────────────────
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Data_Damage);

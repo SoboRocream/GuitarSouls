@@ -9,6 +9,7 @@
 #include "AbilitySystemComponent.h"
 #include "AbilitySystemBlueprintLibrary.h"
 #include "Abilities/Tasks/AbilityTask_PlayMontageAndWait.h"
+#include "Attribute/GSAttributeSet.h"
 #include "Tags/GSGASGameplayTags.h"
 
 UGA_HeavyAttack::UGA_HeavyAttack()
@@ -16,9 +17,42 @@ UGA_HeavyAttack::UGA_HeavyAttack()
 	InstancingPolicy = EGameplayAbilityInstancingPolicy::InstancedPerActor;
 }
 
+bool UGA_HeavyAttack::CanActivateAbility(const FGameplayAbilitySpecHandle Handle,
+	const FGameplayAbilityActorInfo* ActorInfo, const FGameplayTagContainer* SourceTags,
+	const FGameplayTagContainer* TargetTags, FGameplayTagContainer* OptionalRelevantTags) const
+{
+	if (!Super::CanActivateAbility(Handle, ActorInfo, SourceTags, TargetTags, OptionalRelevantTags))
+        {
+            return false;
+        }
+    
+        const UAbilitySystemComponent* ASC = ActorInfo->AbilitySystemComponent.Get();
+        if (!ASC) return false;
+    
+        const UGSAttributeSet* AttributeSet = ASC->GetSet<UGSAttributeSet>();
+        if (!AttributeSet) return false;
+    
+        const AGSGASCharacterBase* Character = Cast<AGSGASCharacterBase>(ActorInfo->AvatarActor.Get());
+        if (!Character) return false;
+    
+        const AGSGASWeapon* Weapon = Character->GetEquippedWeapon();
+        if (!Weapon) return false;
+    
+        const float StaminaCost = Weapon->GetStaminaCost(HeavyAttackTag);
+        const bool bEnough = AttributeSet->GetStamina() >= StaminaCost;
+    
+        if (!bEnough)
+        {
+            GSGAS_LOG(LogGSGAS, Log, TEXT("HeavyAttack blocked: stamina %.1f < cost %.1f"),
+                AttributeSet->GetStamina(), StaminaCost);
+        }
+    
+        return bEnough;
+}
+
 void UGA_HeavyAttack::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
-	const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo,
-	const FGameplayEventData* TriggerEventData)
+                                      const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo,
+                                      const FGameplayEventData* TriggerEventData)
 {
 	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
 	

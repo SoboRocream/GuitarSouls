@@ -6,6 +6,7 @@
 #include "AbilitySystemComponent.h"
 #include "GuitarSoulsGAS.h"
 #include "Abilities/Tasks/AbilityTask_PlayMontageAndWait.h"
+#include "Attribute/GSAttributeSet.h"
 #include "Character/GSGASCharacterPlayer.h"
 #include "Tags/GSGASGameplayTags.h"
 
@@ -14,8 +15,34 @@ UGA_Roll::UGA_Roll()
 	InstancingPolicy = EGameplayAbilityInstancingPolicy::InstancedPerActor;
 }
 
+bool UGA_Roll::CanActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo,
+	const FGameplayTagContainer* SourceTags, const FGameplayTagContainer* TargetTags,
+	FGameplayTagContainer* OptionalRelevantTags) const
+{
+	if (!Super::CanActivateAbility(Handle, ActorInfo, SourceTags, TargetTags, OptionalRelevantTags))
+	{
+		return false;
+	}
+
+	const UAbilitySystemComponent* ASC = ActorInfo->AbilitySystemComponent.Get();
+	if (!ASC) return false;
+
+	const UGSAttributeSet* AttributeSet = ASC->GetSet<UGSAttributeSet>();
+	if (!AttributeSet) return false;
+
+	const bool bEnough = AttributeSet->GetStamina() >= StaminaCost;
+
+	if (!bEnough)
+	{
+		GSGAS_LOG(LogGSGAS, Log, TEXT("Roll blocked: stamina %.1f < cost %.1f"),
+			AttributeSet->GetStamina(), StaminaCost);
+	}
+
+	return bEnough;
+}
+
 void UGA_Roll::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo,
-	const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData)
+                               const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData)
 {
 	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
 

@@ -9,6 +9,7 @@
 #include "AbilitySystemComponent.h"
 #include "AbilitySystemBlueprintLibrary.h"
 #include "Abilities/Tasks/AbilityTask_PlayMontageAndWait.h"
+#include "Attribute/GSAttributeSet.h"
 #include "Tags/GSGASGameplayTags.h"
 
 const TArray<FName> UGA_LightAttack::ComboSectionNames =
@@ -23,9 +24,55 @@ UGA_LightAttack::UGA_LightAttack()
 	InstancingPolicy = EGameplayAbilityInstancingPolicy::InstancedPerActor;
 }
 
+bool UGA_LightAttack::CanActivateAbility(const FGameplayAbilitySpecHandle Handle,
+	const FGameplayAbilityActorInfo* ActorInfo, const FGameplayTagContainer* SourceTags,
+	const FGameplayTagContainer* TargetTags, FGameplayTagContainer* OptionalRelevantTags) const
+{
+	 if (!Super::CanActivateAbility(Handle, ActorInfo, SourceTags, TargetTags, OptionalRelevantTags))
+        {
+            return false;
+        }
+    
+        const UAbilitySystemComponent* ASC = ActorInfo->AbilitySystemComponent.Get();
+        if (!ASC)
+        {
+            return false;
+        }
+    
+        const UGSAttributeSet* AttributeSet = ASC->GetSet<UGSAttributeSet>();
+        if (!AttributeSet)
+        {
+            return false;
+        }
+    
+        // CachedWeapon은 ActivateAbility 이전이므로 AvatarActor에서 직접 조회
+        const AGSGASCharacterBase* Character = Cast<AGSGASCharacterBase>(ActorInfo->AvatarActor.Get());
+        if (!Character)
+        {
+            return false;
+        }
+    
+        const AGSGASWeapon* Weapon = Character->GetEquippedWeapon();
+        if (!Weapon)
+        {
+            return false;
+        }
+    
+        const float StaminaCost = Weapon->GetStaminaCost(LightAttackTag);
+        const bool bEnough = AttributeSet->GetStamina() >= StaminaCost;
+    
+        if (!bEnough)
+        {
+            GSGAS_LOG(LogGSGAS, Log, TEXT("LightAttack blocked: stamina %.1f < cost %.1f"),
+                AttributeSet->GetStamina(), StaminaCost);
+        }
+    
+        return bEnough;
+}
+
 void UGA_LightAttack::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
-	const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo,
-	const FGameplayEventData* TriggerEventData)
+                                      const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo,
+                                      const FGameplayEventData* TriggerEventData)
 {
 	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
 	if (!LightAttackTag.IsValid())
