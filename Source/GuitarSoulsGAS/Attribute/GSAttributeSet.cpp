@@ -2,7 +2,10 @@
 
 
 #include "Attribute/GSAttributeSet.h"
+
+#include "AbilitySystemBlueprintLibrary.h"
 #include "GameplayEffectExtension.h"
+#include "Tags/GSGASGameplayTags.h"
 
 UGSAttributeSet::UGSAttributeSet()
 {
@@ -62,6 +65,26 @@ void UGSAttributeSet::PostGameplayEffectExecute(const struct FGameplayEffectModC
 			if (NewHealth <= 0.f)
 			{
 				OnOutOfHealth.Broadcast();
+			}
+			else
+			{
+				FGameplayEventData EventData;
+
+				AActor* Attacker = Data.EffectSpec.GetEffectContext().GetEffectCauser();
+				if (!Attacker)
+				{
+					if (UAbilitySystemComponent* SourceASC = Data.EffectSpec.GetEffectContext().GetInstigatorAbilitySystemComponent())
+					{
+						Attacker = SourceASC->GetAvatarActor();
+					}
+				}
+
+				EventData.Instigator = Attacker;
+				EventData.ContextHandle = Data.EffectSpec.GetEffectContext();
+				UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(
+					GetOwningActor(),
+					GSGASGameplayTags::Character_Action_HitReaction,
+					EventData);
 			}
 		}
 	}
