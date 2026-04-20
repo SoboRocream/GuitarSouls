@@ -42,6 +42,9 @@ protected:
 	// 락온 시 표시할 위젯 컴포넌트 (BP에서 위젯 클래스 지정)
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "UI")
 	TObjectPtr<class UWidgetComponent> LockOnWidgetComponent;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "UI")
+	TObjectPtr<class UWidgetComponent> HpBarWidgetComponent;
  
 	// 초기 스탯 설정 GE (BP에서 지정)
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "GAS")

@@ -11,6 +11,7 @@
 #include "Components/CapsuleComponent.h"
 #include "Data/GSGASCollision.h"
 #include "Tags/GSGASGameplayTags.h"
+#include "UI/GSGASUserWidget.h"
 
 AGSGASCharacterEnemy::AGSGASCharacterEnemy()
 {
@@ -36,6 +37,20 @@ AGSGASCharacterEnemy::AGSGASCharacterEnemy()
 	LockOnWidgetComponent->SetWidgetSpace(EWidgetSpace::Screen);
 	LockOnWidgetComponent->SetVisibility(false);
 	LockOnWidgetComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+
+	HpBarWidgetComponent = CreateDefaultSubobject<UWidgetComponent>(TEXT("HPBarWidget"));
+	HpBarWidgetComponent->SetupAttachment(RootComponent);
+	HpBarWidgetComponent->SetRelativeLocation(FVector(0.f, 0.f, 100.f));
+	HpBarWidgetComponent->SetDrawSize(FVector2D(100.f, 5.f));
+	HpBarWidgetComponent->SetWidgetSpace(EWidgetSpace::Screen);
+	HpBarWidgetComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	HpBarWidgetComponent->SetVisibility(false);
+
+	if (GetMesh())
+	{
+		HpBarWidgetComponent->SetupAttachment(GetMesh());
+	}
+
 }
 
 void AGSGASCharacterEnemy::OnTargeted(bool bTargeted)
@@ -88,6 +103,7 @@ void AGSGASCharacterEnemy::PossessedBy(AController* NewController)
 			ASC->GiveAbility(FGameplayAbilitySpec(StartAbility));
 		}
 	}
+	
 	GSGAS_LOG(LogGSGAS, Log, TEXT("Enemy ASC initialized on %s."), *GetName());
 }
 

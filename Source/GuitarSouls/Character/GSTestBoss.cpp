@@ -12,11 +12,6 @@
 void AGSTestBoss::BeginPlay()
 {
 	Super::BeginPlay();
-	if (HpBarWidgetComponent)
-	{
-		HpBarWidgetComponent->DestroyComponent();
-	}
-
 	if (BossHealthBarWidgetClass)
 	{
 		BossHpBarWidget = CreateWidget<UGSBossHpBar>(GetWorld(), BossHealthBarWidgetClass);
