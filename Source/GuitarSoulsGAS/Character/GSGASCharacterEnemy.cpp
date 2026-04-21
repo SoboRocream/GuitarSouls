@@ -109,6 +109,18 @@ void AGSGASCharacterEnemy::PossessedBy(AController* NewController)
 void AGSGASCharacterEnemy::BeginPlay()
 {
 	Super::BeginPlay();
+	if (HpBarWidgetComponent && ASC)
+	{
+		if (UGSGASUserWidget* HpWidget = Cast<UGSGASUserWidget>(HpBarWidgetComponent->GetWidget()))
+		{
+			HpWidget->SetAbilitySystemComponent(this);
+			GSGAS_LOG(LogGSGAS, Log, TEXT("HpBarWidget ASC bound on %s."), *GetName());
+		}
+		else
+		{
+			GSGAS_LOG(LogGSGAS, Warning, TEXT("HpBarWidget cast failed on %s. Check widget class in BP."), *GetName());
+		}
+	}
 }
 
 void AGSGASCharacterEnemy::OnOutOfHealth()

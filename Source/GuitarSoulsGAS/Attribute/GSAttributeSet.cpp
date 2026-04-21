@@ -5,6 +5,7 @@
 
 #include "AbilitySystemBlueprintLibrary.h"
 #include "GameplayEffectExtension.h"
+#include "GuitarSoulsGAS.h"
 #include "Tags/GSGASGameplayTags.h"
 
 UGSAttributeSet::UGSAttributeSet()
@@ -13,7 +14,7 @@ UGSAttributeSet::UGSAttributeSet()
 	InitMaxHealth(1000.f);
 	InitStamina(100.f);
 	InitMaxStamina(100.f);
-	InitDamage(100.f);
+	InitDamage(0.f);
 	InitPotionCount(5.f);
 	InitMaxPotionCount(5.f);
 }
@@ -53,6 +54,8 @@ void UGSAttributeSet::PostGameplayEffectExecute(const struct FGameplayEffectModC
 		// Damage 어트리뷰트 경유 방식
 		// GE에서 Damage에 값 설정 → 여기서 Health에 반영 후 Damage 초기화
 		const float RawDamage = GetDamage();
+		GSGAS_LOG(LogGSGAS, Warning, TEXT("PostGE Damage received: %.1f on %s"),
+		RawDamage, *GetOwningActor()->GetName());
 		SetDamage(0.f);
  
 		if (RawDamage > 0.f)
