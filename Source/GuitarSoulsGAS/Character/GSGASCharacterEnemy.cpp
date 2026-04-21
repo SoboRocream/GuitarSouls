@@ -40,7 +40,7 @@ AGSGASCharacterEnemy::AGSGASCharacterEnemy()
 
 	HpBarWidgetComponent = CreateDefaultSubobject<UWidgetComponent>(TEXT("HPBarWidget"));
 	HpBarWidgetComponent->SetupAttachment(GetMesh());
-	HpBarWidgetComponent->SetRelativeLocation(FVector(0.f, 0.f, 100.f));
+	HpBarWidgetComponent->SetRelativeLocation(FVector(0.f, 0.f, 180.f));
 	HpBarWidgetComponent->SetDrawSize(FVector2D(100.f, 5.f));
 	HpBarWidgetComponent->SetWidgetSpace(EWidgetSpace::Screen);
 	HpBarWidgetComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);

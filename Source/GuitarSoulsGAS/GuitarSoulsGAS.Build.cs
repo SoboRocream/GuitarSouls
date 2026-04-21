@@ -11,7 +11,7 @@ public class GuitarSoulsGAS : ModuleRules
         PublicDependencyModuleNames.AddRange(
             new string[]
             {
-                "Core", "CoreUObject", "Engine", "InputCore", "EnhancedInput", "UMG", "GuitarSouls"
+                "Core", "CoreUObject", "Engine", "InputCore", "EnhancedInput", "UMG"
             }
         );
 
@@ -21,7 +21,8 @@ public class GuitarSoulsGAS : ModuleRules
                 "GameFeatures",
                 "GameplayAbilities",
                 "GameplayTasks",
-                "GameplayTags"
+                "GameplayTags", 
+                "GuitarSouls"
             }
         );
     }

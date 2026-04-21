@@ -11,9 +11,7 @@
 			"AdditionalDependencies": [
 				"Engine",
 				"UMG",
-				"AIModule",
-				"GuitarSoulsGAS"
-			]
+				"AIModule"			]
 		},
 		{
 			"Name": "GuitarSoulsGAS",

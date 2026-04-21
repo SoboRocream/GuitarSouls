@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "Attribute/GSAttributeSet.h"
 #include "Character/GSGASCharacterBase.h"
 #include "Interface/GSGASTargetingInterface.h"
 #include "GSGASCharacterEnemy.generated.h"
