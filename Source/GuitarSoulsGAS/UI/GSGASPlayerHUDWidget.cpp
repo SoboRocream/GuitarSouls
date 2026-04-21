@@ -4,28 +4,25 @@
 #include "UI/GSGASPlayerHUDWidget.h"
 #include "AbilitySystemComponent.h"
 #include "Attribute/GSAttributeSet.h"
-#include "UI/GSStatBarWidget.h"
+#include "UI/GSGASBarWidget.h"
 #include "UI/GSPotionWidget.h"
-#include "Player/GSGASPlayerState.h"
 
-void UGSGASPlayerHUDWidget::ShowInteractUI(const FText& InteractText)
+void UGSGASPlayerHUDWidget::SetAbilitySystemComponent(AActor* InOwner)
 {
-}
+	Super::SetAbilitySystemComponent(InOwner);
+	UAbilitySystemComponent* InASC = GetAbilitySystemComponent();
+	if (!InASC) return;
 
-void UGSGASPlayerHUDWidget::HideInteractUI()
-{
-}
-
-void UGSGASPlayerHUDWidget::InitializeWidget(UAbilitySystemComponent* InASC)
-{
 	const UGSAttributeSet* AttributeSet = InASC->GetSet<UGSAttributeSet>();
 	if (!AttributeSet) return;
+
+	HpBarWidget->SetColor(FLinearColor::Red);
+	StaminaBarWidget->SetColor(FLinearColor::Green);
 
 	// ── Health 바인딩 ──────────────────────────────────────────────────────────
 	InASC->GetGameplayAttributeValueChangeDelegate(
 		UGSAttributeSet::GetHealthAttribute())
 		.AddUObject(this, &UGSGASPlayerHUDWidget::OnHealthChanged);
-
 	if (HpBarWidget)
 	{
 		HpBarWidget->SetRatio(AttributeSet->GetHealth() / AttributeSet->GetMaxHealth());
@@ -40,16 +37,16 @@ void UGSGASPlayerHUDWidget::InitializeWidget(UAbilitySystemComponent* InASC)
 	{
 		StaminaBarWidget->SetRatio(AttributeSet->GetStamina() / AttributeSet->GetMaxStamina());
 	}
-
+	
 	// ── PotionCount 바인딩 ────────────────────────────────────────────────────
-	InASC->GetGameplayAttributeValueChangeDelegate(
-		UGSAttributeSet::GetPotionCountAttribute())
-		.AddUObject(this, &UGSGASPlayerHUDWidget::OnPotionCountChanged);
-
-	if (PotionWidget)
-	{
-		PotionWidget->SetPotionQuantity(FMath::FloorToInt(AttributeSet->GetPotionCount()));
-	}
+    	InASC->GetGameplayAttributeValueChangeDelegate(
+    		UGSAttributeSet::GetPotionCountAttribute())
+    		.AddUObject(this, &UGSGASPlayerHUDWidget::OnPotionCountChanged);
+    
+    	if (PotionWidget)
+    	{
+    		PotionWidget->SetPotionQuantity(FMath::FloorToInt(AttributeSet->GetPotionCount()));
+    	}
 }
 
 void UGSGASPlayerHUDWidget::OnHealthChanged(const FOnAttributeChangeData& Data)

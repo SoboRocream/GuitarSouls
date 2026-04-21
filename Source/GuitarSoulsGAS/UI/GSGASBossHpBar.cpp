@@ -3,20 +3,20 @@
 
 #include "UI/GSGASBossHpBar.h"
 #include "AbilitySystemComponent.h"
+#include "GSGASBarWidget.h"
 #include "Attribute/GSAttributeSet.h"
-#include "UI/GSStatBarWidget.h"
 
-void UGSGASBossHpBar::InitializeWidget(UAbilitySystemComponent* InASC)
+void UGSGASBossHpBar::SetAbilitySystemComponent(AActor* InOwner)
 {
+	Super::SetAbilitySystemComponent(InOwner);
+	UAbilitySystemComponent* InASC = GetAbilitySystemComponent();
+	if (!InASC) return;
+
 	const UGSAttributeSet* AttributeSet = InASC->GetSet<UGSAttributeSet>();
 	if (!AttributeSet) return;
 
-	// ── Health 바인딩 ──────────────────────────────────────────────────────────
-	InASC->GetGameplayAttributeValueChangeDelegate(
-		UGSAttributeSet::GetHealthAttribute())
-		.AddUObject(this, &UGSGASBossHpBar::OnHealthChanged);
+	InASC->GetGameplayAttributeValueChangeDelegate(UGSAttributeSet::GetHealthAttribute()).AddUObject(this, &UGSGASBossHpBar::OnHealthChanged);
 
-	// 초기값 설정
 	if (HealthBarWidget)
 	{
 		HealthBarWidget->SetRatio(AttributeSet->GetHealth() / AttributeSet->GetMaxHealth());

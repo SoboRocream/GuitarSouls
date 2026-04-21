@@ -39,17 +39,12 @@ AGSGASCharacterEnemy::AGSGASCharacterEnemy()
 	LockOnWidgetComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 
 	HpBarWidgetComponent = CreateDefaultSubobject<UWidgetComponent>(TEXT("HPBarWidget"));
-	HpBarWidgetComponent->SetupAttachment(RootComponent);
+	HpBarWidgetComponent->SetupAttachment(GetMesh());
 	HpBarWidgetComponent->SetRelativeLocation(FVector(0.f, 0.f, 100.f));
 	HpBarWidgetComponent->SetDrawSize(FVector2D(100.f, 5.f));
 	HpBarWidgetComponent->SetWidgetSpace(EWidgetSpace::Screen);
 	HpBarWidgetComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	HpBarWidgetComponent->SetVisibility(false);
-
-	if (GetMesh())
-	{
-		HpBarWidgetComponent->SetupAttachment(GetMesh());
-	}
 
 }
 
@@ -58,6 +53,10 @@ void AGSGASCharacterEnemy::OnTargeted(bool bTargeted)
 	if (LockOnWidgetComponent)
 	{
 		LockOnWidgetComponent->SetVisibility(bTargeted);
+	}
+	if (HpBarWidgetComponent)
+	{
+		HpBarWidgetComponent->SetVisibility(true);
 	}
 }
 

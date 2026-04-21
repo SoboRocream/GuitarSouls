@@ -15,12 +15,12 @@ class GUITARSOULSGAS_API UGSGASBossHpBar : public UGSGASUserWidget
 {
 	GENERATED_BODY()
 	
-protected:
-	virtual void InitializeWidget(UAbilitySystemComponent* InASC) override;
+public:
+	virtual void SetAbilitySystemComponent(AActor* InOwner) override;
 
 protected:
 	UPROPERTY(meta = (BindWidget), BlueprintReadWrite)
-	TObjectPtr<class UGSStatBarWidget> HealthBarWidget;
+	TObjectPtr<class UGSGASBarWidget> HealthBarWidget;
 
 private:
 	void OnHealthChanged(const FOnAttributeChangeData& Data);

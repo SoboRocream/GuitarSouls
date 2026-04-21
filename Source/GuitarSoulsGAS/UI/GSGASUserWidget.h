@@ -16,14 +16,10 @@ class GUITARSOULSGAS_API UGSGASUserWidget : public UUserWidget, public IAbilityS
 	GENERATED_BODY()
 
 public:
-	void SetASC(class UAbilitySystemComponent* InASC);
+	virtual void SetAbilitySystemComponent(AActor* InOwner);
+	virtual class UAbilitySystemComponent* GetAbilitySystemComponent() const override;
 
 protected:
-	virtual void InitializeWidget(UAbilitySystemComponent* InASC) {}
-
-	FORCEINLINE UAbilitySystemComponent* GetAbilitySystemComponent() const { return ASC.Get(); }
-
-private:
-	UPROPERTY()
-	TWeakObjectPtr<class UAbilitySystemComponent> ASC;
+	UPROPERTY(EditAnywhere, Category = GAS)
+	TObjectPtr<class UAbilitySystemComponent> ASC;
 };

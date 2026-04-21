@@ -2,24 +2,27 @@
 
 
 #include "UI/GSGASBarWidget.h"
-
 #include "Components/ProgressBar.h"
 
-void UGSGASBarWidget::NativeConstruct()
+void UGSGASBarWidget::SetAbilitySystemComponent(AActor* InOwner)
 {
-	Super::NativeConstruct();
-}
+	Super::SetAbilitySystemComponent(InOwner);
 
-void UGSGASBarWidget::UpdateBar(float CurrentValue, float MaxValue)
-{
-	const float Percent = (MaxValue > 0.f) ? (CurrentValue / MaxValue) : 0.f;
-	SetRatio(Percent);
+	if (ASC)
+	{
+		if (StatBar)
+		{
+			StatBar->SetFillColorAndOpacity(DefaultFillColor);
+		}
+	}
 }
 
 void UGSGASBarWidget::SetRatio(float Percent)
 {
-	if (StatBar)
-	{
-		StatBar->SetPercent(FMath::Clamp(Percent, 0.f, 1.f));
-	}
+	StatBar->SetPercent(Percent);
+}
+
+void UGSGASBarWidget::SetColor(FLinearColor InColor)
+{
+	StatBar->SetFillColorAndOpacity(InColor);
 }

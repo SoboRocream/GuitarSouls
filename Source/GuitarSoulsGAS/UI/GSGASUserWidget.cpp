@@ -2,12 +2,17 @@
 
 
 #include "UI/GSGASUserWidget.h"
-#include "AbilitySystemComponent.h"
+#include "AbilitySystemBlueprintLibrary.h"
 
-void UGSGASUserWidget::SetASC(class UAbilitySystemComponent* InASC)
+void UGSGASUserWidget::SetAbilitySystemComponent(AActor* InOwner)
 {
-	if (!InASC) return;
+	if (IsValid(InOwner))
+	{
+		ASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(InOwner);
+	}
+}
 
-	ASC = InASC;
-	InitializeWidget(InASC);
+class UAbilitySystemComponent* UGSGASUserWidget::GetAbilitySystemComponent() const
+{
+	return ASC;
 }

@@ -13,19 +13,17 @@ UCLASS()
 class GUITARSOULSGAS_API UGSGASBarWidget : public UGSGASUserWidget
 {
 	GENERATED_BODY()
-
-protected:
-	virtual void NativeConstruct() override;
-
-	UFUNCTION(BlueprintCallable, Category = "UI")
-	void UpdateBar(float CurrentValue, float MaxValue);
-
-	UFUNCTION(BlueprintCallable, Category = "UI")
-	void SetRatio(float Percent);
-
+	
+public:
+	virtual void SetAbilitySystemComponent(AActor* InOwner) override;
+	virtual void SetRatio(float Percent);
+	void SetColor(FLinearColor InColor);
+	
 protected:
 	UPROPERTY(meta=(BindWidget))
 	TObjectPtr<class UProgressBar> StatBar;
-	
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "UI")
+	FLinearColor DefaultFillColor = FLinearColor::White;
 	
 };

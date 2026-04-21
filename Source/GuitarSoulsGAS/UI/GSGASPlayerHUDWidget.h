@@ -16,18 +16,14 @@ class GUITARSOULSGAS_API UGSGASPlayerHUDWidget : public UGSGASUserWidget
 	GENERATED_BODY()
 
 public:
-	void ShowInteractUI(const FText& InteractText);
-	void HideInteractUI();
-	
-protected:
-	virtual void InitializeWidget(UAbilitySystemComponent* InASC) override;
+	virtual void SetAbilitySystemComponent(AActor* InOwner) override;
 
 protected:
 	UPROPERTY(meta = (BindWidget), BlueprintReadWrite)
-	TObjectPtr<class UGSStatBarWidget> HpBarWidget;
+	TObjectPtr<class UGSGASBarWidget> HpBarWidget;
 
 	UPROPERTY(meta = (BindWidget), BlueprintReadWrite)
-	TObjectPtr<class UGSStatBarWidget> StaminaBarWidget;
+	TObjectPtr<class UGSGASBarWidget> StaminaBarWidget;
 
 	UPROPERTY(meta = (BindWidget), BlueprintReadWrite)
 	TObjectPtr<class UGSPotionWidget> PotionWidget;

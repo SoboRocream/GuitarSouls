@@ -122,7 +122,7 @@ void AGSGASCharacterPlayer::BeginPlay()
 			// PlayerState에서 ASC 획득 후 위젯에 주입
 			if (AGSGASPlayerState* GASPS = GetPlayerState<AGSGASPlayerState>())
 			{
-				PlayerHUDWidget->SetASC(GASPS->GetAbilitySystemComponent());
+				PlayerHUDWidget->SetAbilitySystemComponent(GASPS);
 			}
 		}
 	}
@@ -233,7 +233,7 @@ void AGSGASCharacterPlayer::OnInteractSphereBeginOverlap(UPrimitiveComponent* Ov
 	{
 		if (PlayerHUDWidget)
 		{
-			PlayerHUDWidget->ShowInteractUI(FText::FromString(TEXT("[E] 상호작용")));
+			//PlayerHUDWidget->ShowInteractUI(FText::FromString(TEXT("[E] 상호작용")));
 		}
 		GSGAS_LOG(LogGSGAS, Log, TEXT("Interact target entered: %s"), *OtherActor->GetName());
 	}
@@ -248,7 +248,7 @@ void AGSGASCharacterPlayer::OnInteractSphereEndOverlap(UPrimitiveComponent* Over
 	{
 		if (PlayerHUDWidget)
 		{
-			PlayerHUDWidget->HideInteractUI();
+			//PlayerHUDWidget->HideInteractUI();
 		}
 		GSGAS_LOG(LogGSGAS, Log, TEXT("Interact target exited: %s"), *OtherActor->GetName());
 	}
