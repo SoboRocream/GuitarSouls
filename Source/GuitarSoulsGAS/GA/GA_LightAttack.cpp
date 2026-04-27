@@ -33,7 +33,7 @@ bool UGA_LightAttack::CanActivateAbility(const FGameplayAbilitySpecHandle Handle
             return false;
         }
     
-        const UAbilitySystemComponent* ASC = ActorInfo->AbilitySystemComponent.Get();
+        const UAbilitySystemComponent* ASC = GetAbilitySystemComponentFromActorInfo();
         if (!ASC)
         {
             return false;

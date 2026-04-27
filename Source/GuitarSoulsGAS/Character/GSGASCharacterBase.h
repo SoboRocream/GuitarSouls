@@ -38,7 +38,7 @@ protected:
 	TArray<TSubclassOf<class UGameplayAbility>> StartAbilities;
 
 	// 무기
-	UPROPERTY(VisibleAnywhere, Category = "Weapon")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Weapon")
 	TObjectPtr<class AGSGASWeapon> EquippedWeapon;
 	
 	bool bCombatEnabled = false;
