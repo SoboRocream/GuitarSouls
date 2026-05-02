@@ -20,6 +20,7 @@ namespace GSGASGameplayTags
 
 	// ── AI Behavior ───────────────────────────────────────────────────────────────
 	UE_DEFINE_GAMEPLAY_TAG(AI_Behavior_Idle,            "AI.Behavior.Idle");
+	UE_DEFINE_GAMEPLAY_TAG(AI_Behavior_Approach,		"AI.Behavior.Approach");
 	UE_DEFINE_GAMEPLAY_TAG(AI_Behavior_Patrol,          "AI.Behavior.Patrol");
 	UE_DEFINE_GAMEPLAY_TAG(AI_Behavior_Strafe,          "AI.Behavior.Strafe");
 	UE_DEFINE_GAMEPLAY_TAG(AI_Behavior_Attack_Light,    "AI.Behavior.Attack.Light");

@@ -5,6 +5,7 @@
 
 #include "AbilitySystemComponent.h"
 #include "GuitarSoulsGAS.h"
+#include "AI/GSGASEnemyAIController.h"
 #include "Attribute/GSAttributeSet.h"
 #include "Components/SphereComponent.h"
 #include "Components/WidgetComponent.h"
@@ -58,6 +59,27 @@ void AGSGASCharacterEnemy::OnTargeted(bool bTargeted)
 	{
 		HpBarWidgetComponent->SetVisibility(true);
 	}
+}
+
+void AGSGASCharacterEnemy::NotifyAlert(AActor* InInstigator)
+{
+	// AGSGASEnemyAIController에서 호출 — BB Target 갱신
+	if (AGSGASEnemyAIController* AIController = Cast<AGSGASEnemyAIController>(GetController()))
+	{
+		//AIController->SetAlertTarget(InInstigator);
+	}
+}
+
+ATargetPoint* AGSGASCharacterEnemy::GetCurrentPatrolPoint() const
+{
+	if (PatrolPoints.IsEmpty()) return nullptr;
+	return PatrolPoints[PatrolIndex];
+}
+
+void AGSGASCharacterEnemy::AdvancePatrolIndex()
+{
+	if (PatrolPoints.IsEmpty()) return;
+	PatrolIndex = (PatrolIndex + 1) % PatrolPoints.Num();
 }
 
 void AGSGASCharacterEnemy::PossessedBy(AController* NewController)

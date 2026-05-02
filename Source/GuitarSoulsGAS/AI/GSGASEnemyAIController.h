@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "AIController.h"
+#include "Perception/AIPerceptionTypes.h"
 #include "GSGASEnemyAIController.generated.h"
 
 /**
@@ -14,4 +15,30 @@ class GUITARSOULSGAS_API AGSGASEnemyAIController : public AAIController
 {
 	GENERATED_BODY()
 	
+public:
+	AGSGASEnemyAIController();
+ 
+	// AGSGASCharacterEnemy::NotifyAlert에서 호출
+	void SetAlertTarget(AActor* InInstigator);
+ 
+protected:
+	virtual void OnPossess(APawn* InPawn) override;
+	virtual void OnUnPossess() override;
+ 
+private:
+	UFUNCTION()
+	void OnTargetPerceptionUpdated(AActor* Actor, FAIStimulus Stimulus);
+ 
+	void SetTarget(AActor* InTarget);
+	void PropagateAlert(AActor* InInstigator);
+ 
+protected:
+	UPROPERTY(EditAnywhere, Category = "AI")
+	TObjectPtr<class UBehaviorTree> BTAsset;
+ 
+	UPROPERTY(VisibleAnywhere, Category = "AI")
+	TObjectPtr<class UAIPerceptionComponent> Perception;
+ 
+private:
+	TWeakObjectPtr<class AGSGASCharacterEnemy> ControlledEnemy;
 };

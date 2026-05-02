@@ -6,6 +6,7 @@
 #include "Attribute/GSAttributeSet.h"
 #include "Character/GSGASCharacterBase.h"
 #include "Interface/GSGASTargetingInterface.h"
+#include "Engine/TargetPoint.h"
 #include "GSGASCharacterEnemy.generated.h"
 
 /**
@@ -21,8 +22,18 @@ public:
 	
 	virtual void OnTargeted(bool bTargeted) override;
 	
-protected:
+public:
+	UPROPERTY(EditAnywhere, Category = "AI|Alert")
+	float AlertRadius = 1500.f;
+
+	void NotifyAlert(AActor* InInstigator);
+	
+	ATargetPoint* GetCurrentPatrolPoint() const;
+	void AdvancePatrolIndex();
+	
 	virtual void PossessedBy(AController* NewController) override;
+	
+protected:
 	virtual void BeginPlay() override;
 
 	UFUNCTION()
@@ -50,4 +61,11 @@ protected:
 	// 초기 스탯 설정 GE (BP에서 지정)
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "GAS")
 	TSubclassOf<class UGameplayEffect> InitStatEffectClass;
+	
+protected:
+	UPROPERTY(EditAnywhere, Category = "AI|Patrol")
+	TArray<TObjectPtr<ATargetPoint>> PatrolPoints;
+
+	UPROPERTY(VisibleAnywhere, Category = "AI|Patrol")
+	int32 PatrolIndex = 0;
 };

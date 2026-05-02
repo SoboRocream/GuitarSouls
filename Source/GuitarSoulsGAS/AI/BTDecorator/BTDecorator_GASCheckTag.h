@@ -14,4 +14,14 @@ class GUITARSOULSGAS_API UBTDecorator_GASCheckTag : public UBTDecorator
 {
 	GENERATED_BODY()
 	
+public:
+	UBTDecorator_GASCheckTag();
+	virtual FString GetStaticDescription() const override;
+
+protected:
+	UPROPERTY(EditAnywhere, Category="GameplayTag")
+	FGameplayTag RequiredTag;
+
+	virtual bool CalculateRawConditionValue(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory) const override;
+	
 };
