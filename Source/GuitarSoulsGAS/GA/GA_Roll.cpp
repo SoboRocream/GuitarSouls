@@ -55,13 +55,19 @@ void UGA_Roll::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FG
 	}
 
 	const FVector2D MovementInput = Character->GetLastMovementInput();
-	const bool bIsLockOn = Character->GetAbilitySystemComponent()->HasMatchingGameplayTag(GSGASGameplayTags::Character_State_LockOn);
-	
+
 	if (!MovementInput.IsNearlyZero())
 	{
 		ApplyRollRotation(MovementInput, Character);
 	}
-	
+
+	if (!ForwardMontage)
+	{
+		GSGAS_LOG(LogGSGAS, Warning, TEXT("GA_Roll: ForwardMontage is not set."));
+		EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
+		return;
+	}
+
 	MontageTask = UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy(this, TEXT("RollMontage"), ForwardMontage, 1.f);
 	MontageTask->OnCompleted.AddDynamic(this, &UGA_Roll::OnMontageCompleted);
 	MontageTask->OnInterrupted.AddDynamic(this, &UGA_Roll::OnMontageInterrupted);
@@ -94,16 +100,14 @@ void UGA_Roll::ApplyRollRotation(const FVector2D& MovementInput, ACharacter* Cha
 {
 	if (!Character || !Character->GetController()) return;
 
-	const FRotator YawRotation(0.f, Character->GetControlRotation().Yaw, 0.f);
-	const FVector ForwardDir = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
-	const FVector RightDir = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
+	const float CameraYaw = Character->GetControlRotation().Yaw;
 
-	const FVector InputDir = (ForwardDir * MovementInput.X + RightDir * MovementInput.Y).GetSafeNormal();
+	// 카메라 기준 입력 각도: X=앞(0°), Y=오른쪽(90°)
+	const float RawAngle = FMath::RadiansToDegrees(FMath::Atan2(MovementInput.Y, MovementInput.X));
 
-	if (!InputDir.IsNearlyZero())
-	{
-		Character->SetActorRotation(InputDir.Rotation());
-	}
+	// 45° 단위 스냅 → 카메라 Yaw 더해 월드 회전으로 변환
+	const float SnappedAngle = FMath::RoundToFloat(RawAngle / 45.f) * 45.f;
+	Character->SetActorRotation(FRotator(0.f, CameraYaw + SnappedAngle, 0.f));
 }
 
 void UGA_Roll::ApplyStaminaCost()

@@ -9,11 +9,15 @@
 UENUM(BlueprintType)
 enum class ERollDirection : uint8
 {
-	None		UMETA(DisplayName = "None"),
-	Forward		UMETA(DisplayName = "Forward"),
-	Backward	UMETA(DisplayName = "Backward"),
-	Left		UMETA(DisplayName = "Left"),
-	Right		UMETA(DisplayName = "Right")
+	None			UMETA(DisplayName = "None"),
+	Forward			UMETA(DisplayName = "Forward"),
+	ForwardRight	UMETA(DisplayName = "ForwardRight"),
+	Right			UMETA(DisplayName = "Right"),
+	BackwardRight	UMETA(DisplayName = "BackwardRight"),
+	Backward		UMETA(DisplayName = "Backward"),
+	BackwardLeft	UMETA(DisplayName = "BackwardLeft"),
+	Left			UMETA(DisplayName = "Left"),
+	ForwardLeft		UMETA(DisplayName = "ForwardLeft"),
 };
 /**
  * 
@@ -40,7 +44,7 @@ protected:
 	
 	void ApplyRollRotation(const FVector2D& MovementInput, ACharacter* Character) const;
 	void ApplyStaminaCost();
-	
+
 protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Roll")
 	TObjectPtr<UAnimMontage> ForwardMontage = nullptr;

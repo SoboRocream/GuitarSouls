@@ -28,6 +28,9 @@ protected:
 	UPROPERTY(EditAnywhere, Category="Blackboard")
 	FBlackboardKeySelector TargetKey;
 
+	virtual uint16 GetInstanceMemorySize() const override { return sizeof(bool); }
+	virtual void OnBecomeRelevant(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory) override;
 	virtual bool CalculateRawConditionValue(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory) const override;
+	virtual void TickNode(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory, float DeltaSeconds) override;
 	
 };

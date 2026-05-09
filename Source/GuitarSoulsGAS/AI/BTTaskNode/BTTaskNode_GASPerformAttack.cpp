@@ -2,6 +2,7 @@
 
 
 #include "AI/BTTaskNode/BTTaskNode_GASPerformAttack.h"
+#include "AbilitySystemBlueprintLibrary.h"
 #include "AbilitySystemComponent.h"
 #include "AbilitySystemInterface.h"
 #include "AIController.h"
@@ -12,6 +13,17 @@ UBTTaskNode_GASPerformAttack::UBTTaskNode_GASPerformAttack()
 {
 	NodeName = TEXT("GAS Perform Attack");
 	bNotifyTaskFinished = true;
+}
+
+FString UBTTaskNode_GASPerformAttack::GetStaticDescription() const
+{
+	const FString ClassName = AbilityClass ? AbilityClass->GetName() : TEXT("None");
+	if (EventTag.IsValid())
+	{
+		return FString::Printf(TEXT("Perform: %s | Event: %s (x%.0f)"),
+			*ClassName, *EventTag.GetTagName().ToString(), EventMagnitude);
+	}
+	return FString::Printf(TEXT("Perform: %s"), *ClassName);
 }
 
 EBTNodeResult::Type UBTTaskNode_GASPerformAttack::ExecuteTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory)
@@ -50,18 +62,47 @@ EBTNodeResult::Type UBTTaskNode_GASPerformAttack::ExecuteTask(UBehaviorTreeCompo
 		return EBTNodeResult::Failed;
 	}
  
-	bool bActivated = ASC->TryActivateAbilityByClass(AbilityClass);
+	// EventTag가 설정된 경우: SendGameplayEventToActor (GA_EnemyAttack 전용)
+	// 미설정인 경우: TryActivateAbilityByClass (기존 방식)
+	bool bActivated = false;
+	if (EventTag.IsValid())
+	{
+		const FGameplayAbilitySpec* SpecBefore = ASC->FindAbilitySpecFromClass(AbilityClass);
+		GSGAS_LOG(LogGSGAS, Log, TEXT("[Diag] AbilityClass: %s | Granted: %s | EventTag: %s"),
+			*AbilityClass->GetName(),
+			SpecBefore ? TEXT("YES") : TEXT("NO — 어빌리티가 Grant되지 않음"),
+			*EventTag.ToString());
+
+		if (SpecBefore)
+		{
+			FGameplayEventData EventData;
+			EventData.EventTag = EventTag;
+			EventData.EventMagnitude = EventMagnitude;
+			UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(Pawn, EventTag, EventData);
+
+			const FGameplayAbilitySpec* SpecAfter = ASC->FindAbilitySpecFromClass(AbilityClass);
+			bActivated = SpecAfter && SpecAfter->IsActive();
+			GSGAS_LOG(LogGSGAS, Log, TEXT("[Diag] SendGameplayEvent 후 IsActive: %s | %s"),
+				bActivated ? TEXT("YES") : TEXT("NO"),
+				bActivated ? TEXT("정상") : TEXT("AbilityTriggers에 EventTag 미등록 의심"));
+		}
+	}
+	else
+	{
+		bActivated = ASC->TryActivateAbilityByClass(AbilityClass);
+	}
+
 	if (!bActivated)
 	{
-		GSGAS_LOG(LogGSGAS, Warning, TEXT("BTTaskNode_GASPerformAttack: TryActivateAbilityByClass failed for [%s]."), *AbilityClass->GetName());
+		GSGAS_LOG(LogGSGAS, Warning, TEXT("BTTaskNode_GASPerformAttack: Activation failed for [%s]."), *AbilityClass->GetName());
 		return EBTNodeResult::Failed;
 	}
- 
+
 	CachedOwnerComp = &OwnerComp;
 	CachedASC = ASC;
- 
+
 	AbilityEndedHandle = ASC->OnAbilityEnded.AddUObject(this, &UBTTaskNode_GASPerformAttack::OnAbilityEnded);
- 
+
 	GSGAS_LOG(LogGSGAS, Log, TEXT("BTTaskNode_GASPerformAttack: Ability [%s] activated. Waiting for end."), *AbilityClass->GetName());
 	return EBTNodeResult::InProgress;
 }

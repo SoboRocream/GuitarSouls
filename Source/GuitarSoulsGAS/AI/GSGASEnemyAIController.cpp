@@ -106,6 +106,13 @@ void AGSGASEnemyAIController::OnTargetPerceptionUpdated(AActor* Actor, FAIStimul
 	}
 	else
 	{
+		// 근접 거리 이내면 시야 손실이어도 타겟 유지 (너무 붙었을 때 시야가 날아가는 문제 방지)
+		APawn* MyPawn = GetPawn();
+		if (MyPawn && FVector::Dist(MyPawn->GetActorLocation(), Actor->GetActorLocation()) < KeepTargetDistance)
+		{
+			GSGAS_LOG(LogGSGAS, Log, TEXT("AGSGASEnemyAIController: Sight lost but target kept (within %.0f)."), KeepTargetDistance);
+			return;
+		}
 		SetTarget(nullptr);
 	}
 }

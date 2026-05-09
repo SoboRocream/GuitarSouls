@@ -1031,4 +1031,3 @@ void AGSCharacterPlayer::ToggleIFrames(const bool bEnabled)
 {
 	bEnabledIFrames = bEnabled;
 }
-

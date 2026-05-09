@@ -7,6 +7,7 @@
 #include "Abilities/Tasks/AbilityTask_PlayMontageAndWait.h"
 #include "Attribute/GSAttributeSet.h"
 #include "Character/GSGASCharacterBase.h"
+#include "Character/GSGASCharacterEnemy.h"
 #include "Component/GSGASWeaponCollisionComponent.h"
 #include "Item/GSGASWeapon.h"
 #include "Tags/GSGASGameplayTags.h"
@@ -290,6 +291,11 @@ void UGA_EnemyAttack::OnWeaponHit(const FHitResult& HitResult)
 
 	AActor* HitActor = HitResult.GetActor();
 	if (!HitActor)
+	{
+		return;
+	}
+	
+	if (HitActor->IsA<AGSGASCharacterEnemy>())
 	{
 		return;
 	}

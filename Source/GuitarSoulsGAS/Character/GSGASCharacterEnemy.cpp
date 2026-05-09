@@ -173,6 +173,8 @@ void AGSGASCharacterEnemy::OnDeath()
 		MeshComp->SetCollisionResponseToChannel(ECC_Camera, ECR_Ignore);
 		MeshComp->SetSimulatePhysics(true);
 	}
+	
+	HpBarWidgetComponent->DestroyComponent();
 
 	GSGAS_LOG(LogGSGAS, Log, TEXT("%s died."), *GetName());
 }

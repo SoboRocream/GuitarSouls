@@ -35,6 +35,10 @@ private:
 protected:
 	UPROPERTY(EditAnywhere, Category = "AI")
 	TObjectPtr<class UBehaviorTree> BTAsset;
+
+	// 시야를 잃어도 타겟을 유지하는 근접 거리 (이 거리 이내면 Lose Sight 무시)
+	UPROPERTY(EditAnywhere, Category = "AI", meta = (ClampMin = "0.0"))
+	float KeepTargetDistance = 300.f;
  
 	UPROPERTY(VisibleAnywhere, Category = "AI")
 	TObjectPtr<class UAIPerceptionComponent> Perception;

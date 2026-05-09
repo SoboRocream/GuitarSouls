@@ -23,14 +23,6 @@ namespace GSGASGameplayTags
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Data_Damage);
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Data_StaminaCost);
 
-	// ── AI Behavior ───────────────────────────────────────────────────────────────
-	UE_DECLARE_GAMEPLAY_TAG_EXTERN(AI_Behavior_Idle);
-	UE_DECLARE_GAMEPLAY_TAG_EXTERN(AI_Behavior_Approach);
-	UE_DECLARE_GAMEPLAY_TAG_EXTERN(AI_Behavior_Patrol);
-	UE_DECLARE_GAMEPLAY_TAG_EXTERN(AI_Behavior_Strafe);
-	UE_DECLARE_GAMEPLAY_TAG_EXTERN(AI_Behavior_Attack_Light);
-	UE_DECLARE_GAMEPLAY_TAG_EXTERN(AI_Behavior_Attack_Heavy);
-
 	// ── AI State ──────────────────────────────────────────────────────────────────
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(AI_State_Combat);
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(AI_State_Patrol);

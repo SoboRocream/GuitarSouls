@@ -92,8 +92,8 @@ void AGSGASCharacterPlayer::PossessedBy(AController* NewController)
 			}
 		}
 
-		APlayerController* PlayerController = CastChecked<APlayerController>(NewController);
-		PlayerController->ConsoleCommand(TEXT("showdebug abilitysystem"));
+		// APlayerController* PlayerController = CastChecked<APlayerController>(NewController);
+		// PlayerController->ConsoleCommand(TEXT("showdebug abilitysystem"));
 	}
 }
 
