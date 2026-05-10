@@ -21,8 +21,10 @@ public class GuitarSoulsGAS : ModuleRules
                 "GameFeatures",
                 "GameplayAbilities",
                 "GameplayTasks",
-                "GameplayTags", 
-                "GuitarSouls"
+                "GameplayTags",
+                "GuitarSouls",
+                "NavigationSystem",
+                "AIModule"
             }
         );
     }
