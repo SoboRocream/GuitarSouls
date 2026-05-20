@@ -13,6 +13,7 @@ namespace GSGASGameplayTags
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Character_State_Death);
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Character_State_AttackCollisionActive);
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Character_State_LockOn);
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Character_State_Invincible);
  
 	// ── Character Action ───────────────────────────────────────────────────────
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Character_Action_HitReaction);
@@ -30,4 +31,8 @@ namespace GSGASGameplayTags
 	// ── AI Event ──────────────────────────────────────────────────────────────────
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(AI_Event_TargetAcquired);
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(AI_Event_Alert);
+
+	// ── Boss ──────────────────────────────────────────────────────────────────────
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Boss_Phase_2);
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Boss_State_PhaseTransition);
 }

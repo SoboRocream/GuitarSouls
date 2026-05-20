@@ -26,7 +26,7 @@ protected:
 	TObjectPtr<class UGSGASBarWidget> StaminaBarWidget;
 
 	UPROPERTY(meta = (BindWidget), BlueprintReadWrite)
-	TObjectPtr<class UGSPotionWidget> PotionWidget;
+	TObjectPtr<class UGSGASPotionWidget> PotionWidget;
 
 	UPROPERTY(meta = (BindWidgetOptional), BlueprintReadWrite)
 	TObjectPtr<class UTextBlock> InteractPromptText;

@@ -10,6 +10,7 @@ namespace GSGASGameplayTags
 	UE_DEFINE_GAMEPLAY_TAG(Character_State_Death,                 "Character.State.Death");
 	UE_DEFINE_GAMEPLAY_TAG(Character_State_AttackCollisionActive, "Character.State.AttackCollisionActive");
 	UE_DEFINE_GAMEPLAY_TAG(Character_State_LockOn,				  "Character.State.LockOn");
+	UE_DEFINE_GAMEPLAY_TAG(Character_State_Invincible,            "Character.State.Invincible");
  
 	UE_DEFINE_GAMEPLAY_TAG(Character_Action_HitReaction,          "Character.Action.HitReaction");
 	UE_DEFINE_GAMEPLAY_TAG(Character_Action_Interact,			  "Character.Action.Interact");
@@ -25,5 +26,9 @@ namespace GSGASGameplayTags
 	// ── AI Event ──────────────────────────────────────────────────────────────────
 	UE_DEFINE_GAMEPLAY_TAG(AI_Event_TargetAcquired,     "AI.Event.TargetAcquired");
 	UE_DEFINE_GAMEPLAY_TAG(AI_Event_Alert,              "AI.Event.Alert");
-	
+
+	// ── Boss ──────────────────────────────────────────────────────────────────────
+	UE_DEFINE_GAMEPLAY_TAG(Boss_Phase_2,                "Boss.Phase.2");
+	UE_DEFINE_GAMEPLAY_TAG(Boss_State_PhaseTransition,  "Boss.State.PhaseTransition");
+
 }

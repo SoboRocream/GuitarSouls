@@ -5,7 +5,7 @@
 #include "AbilitySystemComponent.h"
 #include "Attribute/GSAttributeSet.h"
 #include "UI/GSGASBarWidget.h"
-#include "UI/GSPotionWidget.h"
+#include "UI/GSGASPotionWidget.h"
 
 void UGSGASPlayerHUDWidget::SetAbilitySystemComponent(AActor* InOwner)
 {
