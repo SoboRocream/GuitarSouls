@@ -5,23 +5,12 @@
 	"Description": "",
 	"Modules": [
 		{
-			"Name": "GuitarSouls",
-			"Type": "Runtime",
-			"LoadingPhase": "Default",
-			"AdditionalDependencies": [
-				"Engine",
-				"UMG",
-				"AIModule"
-			]
-		},
-		{
 			"Name": "GuitarSoulsGAS",
 			"Type": "Runtime",
 			"LoadingPhase": "PostDefault",
 			"AdditionalDependencies": [
 				"Engine",
 				"GameplayAbilities",
-				"GuitarSouls",
 				"UMG",
 				"AIModule"
 			]
@@ -50,26 +39,6 @@
 		{
 			"Name": "MetaHumanSDK",
 			"Enabled": false
-		},
-		{
-			"Name": "MetaHuman",
-			"Enabled": true,
-			"SupportedTargetPlatforms": [
-				"Win64",
-				"Linux"
-			]
-		},
-		{
-			"Name": "MetaHumanCoreTech",
-			"Enabled": true,
-			"SupportedTargetPlatforms": [
-				"Win64",
-				"Linux"
-			]
-		},
-		{
-			"Name": "MetaHumanCharacter",
-			"Enabled": true
 		}
 	]
 }

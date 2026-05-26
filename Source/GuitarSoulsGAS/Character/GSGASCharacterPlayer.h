@@ -60,7 +60,7 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<class UInputAction> HeavyAttackAction;
 
-	UPROPERTY(EditAnywhere, Category="Input|Interact")
+	UPROPERTY(EditAnywhere, Category=Input)
 	TObjectPtr<class UInputAction> InteractAction;
 
 	UPROPERTY(EditAnywhere, Category=Input)
@@ -68,6 +68,9 @@ protected:
 
 	UPROPERTY(EditAnywhere, Category=Input)
 	TObjectPtr<class UInputAction> LockOnAction;
+	
+	UPROPERTY(EditAnywhere, Category=Input)
+	TObjectPtr<class UInputAction> ToggleCombatAction;
 	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category=Interact)
 	TObjectPtr<class USphereComponent> InteractDetectionSphere;

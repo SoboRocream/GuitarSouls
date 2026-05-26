@@ -9,6 +9,8 @@
 #include "GameFramework/Character.h"
 #include "Data/GSGASCollision.h"
 #include "Components/SphereComponent.h"
+#include "AbilitySystemComponent.h"
+#include "NiagaraComponent.h"
 
 // Sets default values
 AGSGASWeapon::AGSGASWeapon()
@@ -31,6 +33,10 @@ AGSGASWeapon::AGSGASWeapon()
 
 	// Main 콜리전 (Index 0)
 	MainWeaponCollision = CreateDefaultSubobject<UGSGASWeaponCollisionComponent>(TEXT("MainWeaponCollision"));
+
+	WeaponTrail = CreateDefaultSubobject<UNiagaraComponent>(TEXT("WeaponTrail"));
+	WeaponTrail->SetupAttachment(Mesh);
+	WeaponTrail->SetAutoActivate(false);
 }
 
 void AGSGASWeapon::Interact(AActor* InteractionActor)
@@ -56,15 +62,17 @@ void AGSGASWeapon::EquipItem()
 	}
 	
 	OwnerCharacter->SetEquippedWeapon(this);
- 
+
 	// Main 콜리전 초기화
 	if (UGSGASWeaponCollisionComponent* MainCollision = GetWeaponCollision())
 	{
 		MainCollision->SetWeaponMesh(Mesh);
 		MainCollision->AddIgnoreActor(OwnerCharacter);
 	}
-	
-	AttachToOwnerCharacter(EquipSocketName);
+
+	// 줍는 시점엔 등(UnEquipSocket)에 붙임
+	// WeaponTypeTag / CombatEnabled 태그는 GA_ToggleCombat이 관리
+	AttachToOwnerCharacter(UnEquipSocketName);
  
 	// 물리/콜리전 비활성 (픽업 상태 → 장착 상태)
 	Mesh->SetSimulatePhysics(false);
@@ -76,15 +84,42 @@ void AGSGASWeapon::EquipItem()
 
 void AGSGASWeapon::Drop()
 {
+	if (AGSGASCharacterBase* OwnerCharacter = Cast<AGSGASCharacterBase>(GetOwner()))
+	{
+		if (WeaponTypeTag.IsValid())
+		{
+			if (UAbilitySystemComponent* ASC = OwnerCharacter->GetAbilitySystemComponent())
+			{
+				ASC->RemoveLooseGameplayTag(WeaponTypeTag);
+			}
+		}
+	}
+
 	DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
- 
+
 	Mesh->SetSimulatePhysics(true);
 	Mesh->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
 	InteractionSphere->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
- 
+
 	SetOwner(nullptr);
- 
+
 	GSGAS_LOG(LogGSGAS, Log, TEXT("Weapon dropped."));
+}
+
+void AGSGASWeapon::ActivateTrail()
+{
+	if (WeaponTrail)
+	{
+		WeaponTrail->Activate(true);
+	}
+}
+
+void AGSGASWeapon::DeactivateTrail()
+{
+	if (WeaponTrail)
+	{
+		WeaponTrail->Deactivate();
+	}
 }
 
 UAnimMontage* AGSGASWeapon::GetMontageForTag(const FGameplayTag& Tag) const
@@ -113,6 +148,11 @@ float AGSGASWeapon::GetFinalDamage(const FGameplayTag& Tag) const
 		return 0.f;
 	}
 	return WeaponData->GetFinalDamage(Tag);
+}
+
+void AGSGASWeapon::SwitchSocket(bool bEquip)
+{
+	AttachToOwnerCharacter(bEquip ? EquipSocketName : UnEquipSocketName);
 }
 
 void AGSGASWeapon::AttachToOwnerCharacter(FName SocketName)

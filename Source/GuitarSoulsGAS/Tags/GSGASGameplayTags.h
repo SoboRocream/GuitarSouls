@@ -19,6 +19,9 @@ namespace GSGASGameplayTags
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Character_Action_HitReaction);
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Character_Action_Interact);
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Character_Action_Roll);
+	
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Character_Attack_Light);
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Character_Attack_Heavy);
  
 	// ── Data ──────────────────────────────────────────────────────────────────
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Data_Damage);
@@ -35,4 +38,15 @@ namespace GSGASGameplayTags
 	// ── Boss ──────────────────────────────────────────────────────────────────────
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Boss_Phase_2);
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Boss_State_PhaseTransition);
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Boss_Attack);
+
+	// ── Combat Toggle ─────────────────────────────────────────────────────────────
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Character_State_CombatEnabled);
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Character_CombatType_Sword);
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Character_CombatType_TwoHanded);
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Character_CombatType_Fist);
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Character_Action_EquipWeapon);
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Character_Action_UnequipWeapon);
+	
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Character_State_Toggling);
 }

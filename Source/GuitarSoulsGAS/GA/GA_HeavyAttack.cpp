@@ -263,19 +263,21 @@ void UGA_HeavyAttack::OnAttackCollisionTagChanged(const FGameplayTag Tag, int32 
 	{
 		return;
 	}
- 
+
 	UGSGASWeaponCollisionComponent* WeaponCollision = CachedWeapon->GetWeaponCollision();
 	if (!WeaponCollision)
 	{
 		return;
 	}
- 
+
 	if (NewCount > 0)
 	{
 		WeaponCollision->TurnOnCollision();
+		CachedWeapon->ActivateTrail();
 	}
 	else
 	{
 		WeaponCollision->TurnOffCollision();
+		CachedWeapon->DeactivateTrail();
 	}
 }

@@ -160,8 +160,11 @@ void AGSGASCharacterPlayer::SetupGASInputComponent()
 		// 회피 (InputID: 4)
 		EnhancedInputComponent->BindAction(RollAction, ETriggerEvent::Started,this, &AGSGASCharacterPlayer::GASInputPressed, 4);
 
-		// 락온 (InputID: 5
+		// 락온 (InputID: 5)
 		EnhancedInputComponent->BindAction(LockOnAction, ETriggerEvent::Started,this, &AGSGASCharacterPlayer::GASInputPressed, 5);
+		
+		// 전투상태 변화 (InputID: 6)
+		EnhancedInputComponent->BindAction(ToggleCombatAction, ETriggerEvent::Started,this, &AGSGASCharacterPlayer::GASInputPressed, 6);
 	}
 }
 

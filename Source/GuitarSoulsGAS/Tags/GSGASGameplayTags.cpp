@@ -16,6 +16,9 @@ namespace GSGASGameplayTags
 	UE_DEFINE_GAMEPLAY_TAG(Character_Action_Interact,			  "Character.Action.Interact");
 	UE_DEFINE_GAMEPLAY_TAG(Character_Action_Roll,				  "Character.Action.Roll");
 	
+	UE_DEFINE_GAMEPLAY_TAG(Character_Attack_Light, "Character.Attack.Light");
+	UE_DEFINE_GAMEPLAY_TAG(Character_Attack_Heavy, "Character.Attack.Heavy");
+	
 	UE_DEFINE_GAMEPLAY_TAG(Data_Damage,                           "Data.Damage");
 	UE_DEFINE_GAMEPLAY_TAG(Data_StaminaCost,                      "Data.StaminaCost");
 
@@ -30,5 +33,15 @@ namespace GSGASGameplayTags
 	// ── Boss ──────────────────────────────────────────────────────────────────────
 	UE_DEFINE_GAMEPLAY_TAG(Boss_Phase_2,                "Boss.Phase.2");
 	UE_DEFINE_GAMEPLAY_TAG(Boss_State_PhaseTransition,  "Boss.State.PhaseTransition");
+	UE_DEFINE_GAMEPLAY_TAG(Boss_Attack,  "Boss.Attack");
 
+	// ── Combat Toggle ─────────────────────────────────────────────────────────────
+	UE_DEFINE_GAMEPLAY_TAG(Character_State_CombatEnabled,      "Character.State.CombatEnabled");
+	UE_DEFINE_GAMEPLAY_TAG(Character_CombatType_Sword,         "Character.CombatType.Sword");
+	UE_DEFINE_GAMEPLAY_TAG(Character_CombatType_TwoHanded,     "Character.CombatType.TwoHanded");
+	UE_DEFINE_GAMEPLAY_TAG(Character_CombatType_Fist,          "Character.CombatType.Fist");
+	UE_DEFINE_GAMEPLAY_TAG(Character_Action_EquipWeapon,       "Character.Action.EquipWeapon");
+	UE_DEFINE_GAMEPLAY_TAG(Character_Action_UnequipWeapon,     "Character.Action.UnequipWeapon");
+
+	UE_DEFINE_GAMEPLAY_TAG(Character_State_Toggling,           "Character.State.Toggling");
 }

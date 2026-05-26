@@ -28,6 +28,9 @@ private:
 	void SetTarget(AActor* InTarget);
 	void OnPlayerDeathTagChanged(const FGameplayTag Tag, int32 NewCount);
 
+	// OnPossess 직후 플레이어가 아직 없을 경우를 대비한 지연 탐색
+	void TryFindAndSetTarget();
+
 protected:
 	UPROPERTY(EditAnywhere, Category = "AI")
 	TObjectPtr<class UBehaviorTree> BTAsset;

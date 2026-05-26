@@ -33,26 +33,8 @@ void AGSGASBossAIController::OnPossess(APawn* InPawn)
 
 	RunBehaviorTree(BTAsset);
 
-	ACharacter* Player = UGameplayStatics::GetPlayerCharacter(GetWorld(), 0);
-	if (!Player)
-	{
-		GSGAS_LOG(LogGSGAS, Warning, TEXT("GSGASBossAIController: Player not found."));
-		return;
-	}
-
-	SetTarget(Player);
-
-	// 플레이어 Death 태그 구독 — 사망 시 타겟 해제
-	if (IAbilitySystemInterface* ASCInterface = Cast<IAbilitySystemInterface>(Player))
-	{
-		if (UAbilitySystemComponent* PlayerASC = ASCInterface->GetAbilitySystemComponent())
-		{
-			PlayerDeathTagHandle = PlayerASC->RegisterGameplayTagEvent(
-				GSGASGameplayTags::Character_State_Death,
-				EGameplayTagEventType::NewOrRemoved)
-				.AddUObject(this, &AGSGASBossAIController::OnPlayerDeathTagChanged);
-		}
-	}
+	// OnPossess 시점에 플레이어가 아직 Possess되지 않았을 수 있으므로 한 프레임 뒤에 탐색
+	GetWorld()->GetTimerManager().SetTimerForNextTick(this, &AGSGASBossAIController::TryFindAndSetTarget);
 
 	GSGAS_LOG(LogGSGAS, Log, TEXT("GSGASBossAIController: BT started on %s."), *ControlledBoss->GetName());
 }
@@ -87,6 +69,30 @@ void AGSGASBossAIController::OnPlayerDeathTagChanged(const FGameplayTag Tag, int
 	{
 		GSGAS_LOG(LogGSGAS, Log, TEXT("GSGASBossAIController: Player died, clearing target."));
 		SetTarget(nullptr);
+	}
+}
+
+void AGSGASBossAIController::TryFindAndSetTarget()
+{
+	ACharacter* Player = UGameplayStatics::GetPlayerCharacter(GetWorld(), 0);
+	if (!Player)
+	{
+		GSGAS_LOG(LogGSGAS, Warning, TEXT("GSGASBossAIController: Player not found after tick delay."));
+		return;
+	}
+
+	SetTarget(Player);
+
+	// 플레이어 Death 태그 구독 — 사망 시 타겟 해제
+	if (IAbilitySystemInterface* ASCInterface = Cast<IAbilitySystemInterface>(Player))
+	{
+		if (UAbilitySystemComponent* PlayerASC = ASCInterface->GetAbilitySystemComponent())
+		{
+			PlayerDeathTagHandle = PlayerASC->RegisterGameplayTagEvent(
+				GSGASGameplayTags::Character_State_Death,
+				EGameplayTagEventType::NewOrRemoved)
+				.AddUObject(this, &AGSGASBossAIController::OnPlayerDeathTagChanged);
+		}
 	}
 }
 
