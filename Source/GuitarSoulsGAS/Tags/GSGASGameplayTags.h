@@ -19,6 +19,7 @@ namespace GSGASGameplayTags
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Character_Action_HitReaction);
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Character_Action_Interact);
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Character_Action_Roll);
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Character_Action_UsePotion);
 	
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Character_Attack_Light);
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Character_Attack_Heavy);
@@ -26,6 +27,7 @@ namespace GSGASGameplayTags
 	// ── Data ──────────────────────────────────────────────────────────────────
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Data_Damage);
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Data_StaminaCost);
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Data_HealAmount);
 
 	// ── AI State ──────────────────────────────────────────────────────────────────
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(AI_State_Combat);

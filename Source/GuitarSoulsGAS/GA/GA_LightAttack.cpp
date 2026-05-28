@@ -352,6 +352,12 @@ void UGA_LightAttack::OnComboWindowTagChanged(const FGameplayTag Tag, int32 NewC
 		CurrentComboIndex++;
 		ApplyStaminaCost();
 
+		// 콤보 방향 전환 (락온 타겟 > 이동 입력 > 현재 방향)
+		if (AGSGASCharacterBase* Character = Cast<AGSGASCharacterBase>(GetActorInfo().AvatarActor.Get()))
+		{
+			Character->SetActorRotation(Character->GetComboFacingRotation());
+		}
+
 		const FName NextSection = GetCurrentSectionName();
 		MontageJumpToSection(NextSection);
 

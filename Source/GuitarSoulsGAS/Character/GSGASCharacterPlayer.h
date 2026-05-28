@@ -22,6 +22,8 @@ public:
 	FORCEINLINE float GetInteractRadius() const { return InteractRadius; }
 	FORCEINLINE FVector2D GetLastMovementInput() const { return LastMovementInput; }
 
+	virtual FRotator GetComboFacingRotation() const override;
+
 protected:
 	virtual void BeginPlay() override;
 	virtual void SetupPlayerInputComponent(UInputComponent* PlayerInputComponent) override;

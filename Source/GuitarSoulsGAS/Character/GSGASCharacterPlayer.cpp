@@ -15,6 +15,7 @@
 #include "Components/SphereComponent.h"
 #include "Data/GSGASCollision.h"
 #include "Interface/GSGASInteractInterface.h"
+#include "Component/GSGASTargetingComponent.h"
 #include "Tags/GSGASGameplayTags.h"
 #include "UI/GSGASPlayerHUDWidget.h"
 
@@ -95,6 +96,36 @@ void AGSGASCharacterPlayer::PossessedBy(AController* NewController)
 		// APlayerController* PlayerController = CastChecked<APlayerController>(NewController);
 		// PlayerController->ConsoleCommand(TEXT("showdebug abilitysystem"));
 	}
+}
+
+FRotator AGSGASCharacterPlayer::GetComboFacingRotation() const
+{
+	// 1순위: 락온 중이면 타겟 방향
+	if (UGSGASTargetingComponent* TargetingComp = FindComponentByClass<UGSGASTargetingComponent>())
+	{
+		if (TargetingComp->IsLockedOn())
+		{
+			if (const AActor* Target = TargetingComp->GetLockedTarget())
+			{
+				FVector Dir = (Target->GetActorLocation() - GetActorLocation()).GetSafeNormal();
+				Dir.Z = 0.f;
+				return Dir.ToOrientationRotator();
+			}
+		}
+	}
+
+	// 2순위: 이동 입력 방향 (카메라 기준 월드 방향 변환)
+	if (!LastMovementInput.IsNearlyZero())
+	{
+		const FRotator ControlYaw(0.f, GetControlRotation().Yaw, 0.f);
+		const FVector Forward = FRotationMatrix(ControlYaw).GetUnitAxis(EAxis::X);
+		const FVector Right   = FRotationMatrix(ControlYaw).GetUnitAxis(EAxis::Y);
+		const FVector MoveDir = (Forward * LastMovementInput.X + Right * LastMovementInput.Y).GetSafeNormal();
+		return MoveDir.ToOrientationRotator();
+	}
+
+	// 3순위: 현재 방향 유지
+	return GetActorRotation();
 }
 
 void AGSGASCharacterPlayer::BeginPlay()
@@ -201,7 +232,7 @@ void AGSGASCharacterPlayer::GASInputReleased(int32 InputId)
 void AGSGASCharacterPlayer::Move(const FInputActionValue& Value)
 {
 	const FVector2D CurrentMovementInput = Value.Get<FVector2D>();
-	
+
 	if (Controller != nullptr)
 	{
 		const FRotator Rotation = Controller->GetControlRotation();

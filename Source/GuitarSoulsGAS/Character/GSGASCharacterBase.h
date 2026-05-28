@@ -26,6 +26,10 @@ public:
 	
 	virtual float TakeDamage(float DamageAmount, const FDamageEvent& DamageEvent,
 		AController* EventInstigator, AActor* DamageCauser) override;
+
+	// 콤보 전환 시 바라볼 방향 반환. 기본값 = 현재 방향 유지
+	// Player: 락온 타겟 > 이동 입력 > 현재 방향
+	virtual FRotator GetComboFacingRotation() const { return GetActorRotation(); }
 protected:
 	virtual void BeginPlay() override;
 

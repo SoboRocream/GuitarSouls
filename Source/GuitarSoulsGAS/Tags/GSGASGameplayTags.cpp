@@ -15,12 +15,14 @@ namespace GSGASGameplayTags
 	UE_DEFINE_GAMEPLAY_TAG(Character_Action_HitReaction,          "Character.Action.HitReaction");
 	UE_DEFINE_GAMEPLAY_TAG(Character_Action_Interact,			  "Character.Action.Interact");
 	UE_DEFINE_GAMEPLAY_TAG(Character_Action_Roll,				  "Character.Action.Roll");
+	UE_DEFINE_GAMEPLAY_TAG(Character_Action_UsePotion,            "Character.Action.UsePotion");
 	
 	UE_DEFINE_GAMEPLAY_TAG(Character_Attack_Light, "Character.Attack.Light");
 	UE_DEFINE_GAMEPLAY_TAG(Character_Attack_Heavy, "Character.Attack.Heavy");
 	
 	UE_DEFINE_GAMEPLAY_TAG(Data_Damage,                           "Data.Damage");
 	UE_DEFINE_GAMEPLAY_TAG(Data_StaminaCost,                      "Data.StaminaCost");
+	UE_DEFINE_GAMEPLAY_TAG(Data_HealAmount,                       "Data.HealAmount");
 
 	// ── AI State ──────────────────────────────────────────────────────────────────
 	UE_DEFINE_GAMEPLAY_TAG(AI_State_Combat,             "AI.State.Combat");
