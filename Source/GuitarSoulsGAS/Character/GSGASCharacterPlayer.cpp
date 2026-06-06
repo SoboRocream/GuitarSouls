@@ -179,23 +179,26 @@ void AGSGASCharacterPlayer::SetupGASInputComponent()
 	{
 		UEnhancedInputComponent* EnhancedInputComponent = CastChecked<UEnhancedInputComponent>(InputComponent);
 
-		// 약공 (InputID: 1)
+		// 약공 (InputID: 1) Mouse Left
 		EnhancedInputComponent->BindAction(LightAttackAction, ETriggerEvent::Started, this, &AGSGASCharacterPlayer::GASInputPressed, 1);
 
 		// 강공 (InputID: 2) — Shift 조합
 		EnhancedInputComponent->BindAction(HeavyAttackAction, ETriggerEvent::Started, this, &AGSGASCharacterPlayer::GASInputPressed, 2);
 
-		// 상호작용 (InputID: 3)
+		// 상호작용 (InputID: 3) F
 		EnhancedInputComponent->BindAction(InteractAction, ETriggerEvent::Started,this, &AGSGASCharacterPlayer::GASInputPressed, 3);
 
-		// 회피 (InputID: 4)
+		// 회피 (InputID: 4) Space
 		EnhancedInputComponent->BindAction(RollAction, ETriggerEvent::Started,this, &AGSGASCharacterPlayer::GASInputPressed, 4);
 
-		// 락온 (InputID: 5)
+		// 락온 (InputID: 5) Mouse Middle
 		EnhancedInputComponent->BindAction(LockOnAction, ETriggerEvent::Started,this, &AGSGASCharacterPlayer::GASInputPressed, 5);
 		
-		// 전투상태 변화 (InputID: 6)
+		// 전투상태 변화 (InputID: 6) X
 		EnhancedInputComponent->BindAction(ToggleCombatAction, ETriggerEvent::Started,this, &AGSGASCharacterPlayer::GASInputPressed, 6);
+		
+		// 아이템 사용 (InputID: 7) E
+		EnhancedInputComponent->BindAction(UseItemAction, ETriggerEvent::Started,this, &AGSGASCharacterPlayer::GASInputPressed, 7);
 	}
 }
 

@@ -5,6 +5,7 @@
 #include "Item/GSGASWeapon.h"
 #include "AbilitySystemComponent.h"
 #include "GuitarSoulsGAS.h"
+#include "Tags/GSGASGameplayTags.h"
 
 
 AGSGASCharacterBase::AGSGASCharacterBase()
@@ -15,6 +16,14 @@ AGSGASCharacterBase::AGSGASCharacterBase()
 UAbilitySystemComponent* AGSGASCharacterBase::GetAbilitySystemComponent() const
 {
 	return ASC;
+}
+
+void AGSGASCharacterBase::GetOwnedGameplayTags(FGameplayTagContainer& TagContainer) const
+{
+	if (ASC)
+	{
+		ASC->GetOwnedGameplayTags(TagContainer);
+	}
 }
 
 void AGSGASCharacterBase::SetEquippedWeapon(class AGSGASWeapon* InWeapon)
@@ -83,4 +92,53 @@ void AGSGASCharacterBase::BeginPlay()
 {
 	Super::BeginPlay();
 	GSGAS_LOG(LogGSGAS, Log, TEXT("GSGASCharacterBase BeginPlay on %s."), *GetName());
+}
+
+void AGSGASCharacterBase::SpawnAndEquipWeaponInCombat(TSubclassOf<AGSGASWeapon> WeaponClass)
+{
+	if (!WeaponClass)
+	{
+		return;
+	}
+
+	if (!ASC)
+	{
+		GSGAS_LOG(LogGSGAS, Warning, TEXT("SpawnAndEquipWeaponInCombat: ASC not initialized on %s."), *GetName());
+		return;
+	}
+
+	// 이미 무기가 장착됐으면 스킵 — bGASInitialized 가드가 있어야 여기 도달하지 않지만 이중 방어
+	if (EquippedWeapon)
+	{
+		GSGAS_LOG(LogGSGAS, Warning, TEXT("SpawnAndEquipWeaponInCombat: already equipped on %s, skip."), *GetName());
+		return;
+	}
+
+	FActorSpawnParameters SpawnParams;
+	SpawnParams.Owner = this;
+	SpawnParams.Instigator = this;
+	SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+
+	AGSGASWeapon* Weapon = GetWorld()->SpawnActor<AGSGASWeapon>(WeaponClass, GetActorTransform(), SpawnParams);
+	if (!Weapon)
+	{
+		GSGAS_LOG(LogGSGAS, Warning, TEXT("SpawnAndEquipWeaponInCombat: SpawnActor failed on %s."), *GetName());
+		return;
+	}
+
+	// UnEquipSocket(등)에 붙이고 EquippedWeapon 설정
+	Weapon->EquipItem();
+
+	// 몽타주 없이 즉시 손(EquipSocket)으로 이동
+	Weapon->SwitchSocket(true);
+
+	// 전투 상태 플래그 + GAS 태그 적용
+	SetCombatEnabled(true);
+	ASC->AddLooseGameplayTag(GSGASGameplayTags::Character_State_CombatEnabled);
+	if (Weapon->GetWeaponTypeTag().IsValid())
+	{
+		ASC->AddLooseGameplayTag(Weapon->GetWeaponTypeTag());
+	}
+
+	GSGAS_LOG(LogGSGAS, Log, TEXT("SpawnAndEquipWeaponInCombat: weapon equipped and combat enabled on %s."), *GetName());
 }

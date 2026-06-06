@@ -58,5 +58,12 @@ private:
 	UFUNCTION()
 	void OnMontageInterrupted();
 
+	// GA 강제 취소 후 AnimInstance 직접 재생이 끝났을 때 호출
+	UFUNCTION()
+	void OnMontageEndedDirect(UAnimMontage* Montage, bool bInterrupted);
+
+	// ASC 태그 처리 + (GA 활성 상태이면) EndAbility. 중복 호출 방지됨
 	void FinishTransition();
+
+	bool bTransitionFinished = false;
 };

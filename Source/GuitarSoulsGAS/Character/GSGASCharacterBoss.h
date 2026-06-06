@@ -54,6 +54,14 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "GAS")
 	TSubclassOf<class UGameplayEffect> InitStatEffectClass;
 
+	// 시작 시 자동 장착할 무기 (지정 시 PossessedBy에서 즉시 전투 모드 진입)
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Weapon")
+	TSubclassOf<class AGSGASWeapon> DefaultWeaponClass;
+
+	// 보스 공격 GA 목록 — StartAbilities(공통)와 분리해 BP 디테일 가독성 확보
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "GAS|Attack")
+	TArray<TSubclassOf<class UGameplayAbility>> AttackAbilities;
+
 	// 페이즈 전환 GA (BP에서 지정)
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Boss|Phase")
 	TSubclassOf<class UGameplayAbility> PhaseTransitionAbilityClass;

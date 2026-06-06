@@ -5,6 +5,8 @@
 #include "AbilitySystemComponent.h"
 #include "Abilities/Tasks/AbilityTask_PlayMontageAndWait.h"
 #include "Abilities/Tasks/AbilityTask_WaitDelay.h"
+#include "Animation/AnimInstance.h"
+#include "GameFramework/Character.h"
 #include "GuitarSoulsGAS.h"
 #include "Tags/GSGASGameplayTags.h"
 
@@ -66,6 +68,25 @@ void UGA_BossPhaseTransition::EndAbility(const FGameplayAbilitySpecHandle Handle
 	const FGameplayAbilityActivationInfo ActivationInfo,
 	bool bReplicateEndAbility, bool bWasCancelled)
 {
+	// GA가 외부에서 강제 취소됐고 아직 페이즈 전환이 완료되지 않은 경우:
+	// AbilityTask는 이미 종료되므로 AnimInstance에 직접 몽타주를 걸어 연출을 보장
+	if (bWasCancelled && !bTransitionFinished && TransitionMontage)
+	{
+		if (ACharacter* Character = Cast<ACharacter>(ActorInfo->AvatarActor.Get()))
+		{
+			if (UAnimInstance* AnimInstance = Character->GetMesh() ? Character->GetMesh()->GetAnimInstance() : nullptr)
+			{
+				AnimInstance->Montage_Play(TransitionMontage);
+
+				FOnMontageEnded EndDelegate;
+				EndDelegate.BindUObject(this, &UGA_BossPhaseTransition::OnMontageEndedDirect);
+				AnimInstance->Montage_SetEndDelegate(EndDelegate, TransitionMontage);
+
+				GSGAS_LOG(LogGSGAS, Log, TEXT("GA_BossPhaseTransition: replaying montage after cancel."));
+			}
+		}
+	}
+
 	Super::EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);
 }
 
@@ -76,25 +97,39 @@ void UGA_BossPhaseTransition::OnMontageEnd()
 
 void UGA_BossPhaseTransition::OnMontageInterrupted()
 {
-	// 인터럽트되어도 페이즈 전환은 완료 처리
-	GSGAS_LOG(LogGSGAS, Warning, TEXT("GA_BossPhaseTransition: Montage interrupted, forcing phase transition."));
+	// Task 경로에서 몽타주가 끊힌 경우 — FinishTransition이 EndAbility → AnimInstance 직접 재생 경로로 이어짐
+	GSGAS_LOG(LogGSGAS, Warning, TEXT("GA_BossPhaseTransition: Montage interrupted via Task."));
+	FinishTransition();
+}
+
+void UGA_BossPhaseTransition::OnMontageEndedDirect(UAnimMontage* Montage, bool bInterrupted)
+{
+	// GA 강제 취소 후 직접 재생한 몽타주가 끝난 경우
+	if (bInterrupted)
+	{
+		GSGAS_LOG(LogGSGAS, Warning, TEXT("GA_BossPhaseTransition: Direct montage also interrupted, forcing transition."));
+	}
 	FinishTransition();
 }
 
 void UGA_BossPhaseTransition::FinishTransition()
 {
+	if (bTransitionFinished) return;
+	bTransitionFinished = true;
+
 	UAbilitySystemComponent* ASC = GetAbilitySystemComponentFromActorInfo();
 	if (ASC)
 	{
-		// Phase 2 태그 부여
 		ASC->AddLooseGameplayTag(GSGASGameplayTags::Boss_Phase_2);
-
-		// 무적 + 전환 중 태그 제거
 		ASC->RemoveLooseGameplayTag(GSGASGameplayTags::Character_State_Invincible);
 		ASC->RemoveLooseGameplayTag(GSGASGameplayTags::Boss_State_PhaseTransition);
-
 		GSGAS_LOG(LogGSGAS, Log, TEXT("GA_BossPhaseTransition: Phase 2 activated."));
 	}
 
-	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, false, false);
+	// GA가 아직 활성 상태일 때만 (정상 Task 경로) EndAbility 호출
+	// 강제 취소 경로에서는 이미 EndAbility가 완료된 상태
+	if (IsActive())
+	{
+		EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, false, false);
+	}
 }

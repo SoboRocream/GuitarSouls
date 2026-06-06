@@ -54,7 +54,16 @@ void AGSGASCharacterBoss::PossessedBy(AController* NewController)
 		return;
 	}
 
+	// AvatarActor 정보는 컨트롤러 교체 시에도 갱신이 필요하므로 가드 밖에 위치
 	ASC->InitAbilityActorInfo(this, this);
+
+	// 이미 초기화됐으면 델리게이트 이중 바인딩 / 어빌리티 이중 부여 / 무기 이중 스폰 방지
+	if (bGASInitialized)
+	{
+		GSGAS_LOG(LogGSGAS, Warning, TEXT("PossessedBy called again on %s, skip GAS setup."), *GetName());
+		return;
+	}
+	bGASInitialized = true;
 
 	if (AttributeSet)
 	{
@@ -86,6 +95,16 @@ void AGSGASCharacterBoss::PossessedBy(AController* NewController)
 			ASC->GiveAbility(FGameplayAbilitySpec(Ability));
 		}
 	}
+
+	for (const TSubclassOf<UGameplayAbility>& Ability : AttackAbilities)
+	{
+		if (Ability)
+		{
+			ASC->GiveAbility(FGameplayAbilitySpec(Ability));
+		}
+	}
+
+	SpawnAndEquipWeaponInCombat(DefaultWeaponClass);
 
 	GSGAS_LOG(LogGSGAS, Log, TEXT("Boss ASC initialized on %s."), *GetName());
 }

@@ -3,6 +3,7 @@
 
 #include "AI/BTDecorator/BTDecorator_GASInRange.h"
 #include "AIController.h"
+#include "GuitarSoulsGAS.h"
 #include "BehaviorTree/BlackboardComponent.h"
 
 UBTDecorator_GASInRange::UBTDecorator_GASInRange()
@@ -22,30 +23,38 @@ bool UBTDecorator_GASInRange::CalculateRawConditionValue(UBehaviorTreeComponent&
 	const AAIController* AIController = OwnerComp.GetAIOwner();
 	if (!AIController)
 	{
+		GSGAS_LOG(LogGSGAS, Warning, TEXT("GASInRange: AIController null"));
 		return false;
 	}
 
 	const APawn* ControlledPawn = AIController->GetPawn();
 	if (!ControlledPawn)
 	{
+		GSGAS_LOG(LogGSGAS, Warning, TEXT("GASInRange: ControlledPawn null"));
 		return false;
 	}
 
 	const UBlackboardComponent* Blackboard = OwnerComp.GetBlackboardComponent();
 	if (!Blackboard)
 	{
+		GSGAS_LOG(LogGSGAS, Warning, TEXT("GASInRange: Blackboard null"));
 		return false;
 	}
 
 	const AActor* Target = Cast<AActor>(Blackboard->GetValueAsObject(TargetKey.SelectedKeyName));
 	if (!Target)
 	{
+		GSGAS_LOG(LogGSGAS, Warning, TEXT("GASInRange: Target null (TargetKey='%s')"), *TargetKey.SelectedKeyName.ToString());
 		return false;
 	}
 
 	const float Distance = FVector::Dist(ControlledPawn->GetActorLocation(), Target->GetActorLocation());
-	return Distance >= MinDistance && Distance <= MaxDistance;
+	const bool bResult = Distance >= MinDistance && Distance <= MaxDistance;
+	GSGAS_LOG(LogGSGAS, Log, TEXT("GASInRange: Dist=%.0f Range=[%.0f~%.0f] = %s"),
+		Distance, MinDistance, MaxDistance, bResult ? TEXT("IN") : TEXT("OUT"));
+	return bResult;
 }
+
 
 void UBTDecorator_GASInRange::OnBecomeRelevant(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory)
 {
@@ -57,6 +66,9 @@ void UBTDecorator_GASInRange::OnBecomeRelevant(UBehaviorTreeComponent& OwnerComp
 
 void UBTDecorator_GASInRange::TickNode(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory, float DeltaSeconds)
 {
+	// [진단용 — 확인 후 제거] 이 로그가 뜨지 않으면 TickNode 미호출 → FlowAbortMode/Observer 문제
+	GSGAS_LOG(LogGSGAS, Log, TEXT("GASInRange: TickNode called (DeltaSeconds=%.3f)"), DeltaSeconds);
+
 	// 조건이 변경됐을 때만 재평가 요청 (매 틱 RequestExecution은 MoveTo 재시작 버그 유발)
 	bool* bLastResult = reinterpret_cast<bool*>(NodeMemory);
 	const bool bCurrentResult = CalculateRawConditionValue(OwnerComp, NodeMemory);

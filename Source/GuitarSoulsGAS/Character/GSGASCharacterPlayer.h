@@ -74,6 +74,9 @@ protected:
 	UPROPERTY(EditAnywhere, Category=Input)
 	TObjectPtr<class UInputAction> ToggleCombatAction;
 	
+	UPROPERTY(EditAnywhere, Category=Input)
+	TObjectPtr<class UInputAction> UseItemAction;
+	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category=Interact)
 	TObjectPtr<class USphereComponent> InteractDetectionSphere;
 

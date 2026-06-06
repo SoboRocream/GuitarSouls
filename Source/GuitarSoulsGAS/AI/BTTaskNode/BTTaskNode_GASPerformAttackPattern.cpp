@@ -97,11 +97,23 @@ EBTNodeResult::Type UBTTaskNode_GASPerformAttackPattern::ExecuteTask(UBehaviorTr
 
 			const FGameplayAbilitySpec* SpecAfter = ASC->FindAbilitySpecFromClass(Entry.AbilityClass);
 			bActivated = SpecAfter && SpecAfter->IsActive();
+
+			GSGAS_LOG(LogGSGAS, Log, TEXT("[Diag] SendGameplayEvent 후 IsActive: %s | %s"),
+				bActivated ? TEXT("YES") : TEXT("NO"),
+				bActivated ? TEXT("정상")
+				           : TEXT("AbilityTriggers에 EventTag 미등록 의심 — BP 클래스 디폴트에서 Ability Triggers 항목에 해당 태그 추가 필요"));
 		}
 	}
 	else
 	{
+		const FGameplayAbilitySpec* Spec = ASC->FindAbilitySpecFromClass(Entry.AbilityClass);
+		GSGAS_LOG(LogGSGAS, Log, TEXT("[Diag] TryActivateAbilityByClass | AbilityClass: %s | Granted: %s"),
+			*Entry.AbilityClass->GetName(),
+			Spec ? TEXT("YES") : TEXT("NO — StartAbilities에 등록됐는지 확인 필요"));
+
 		bActivated = ASC->TryActivateAbilityByClass(Entry.AbilityClass);
+		GSGAS_LOG(LogGSGAS, Log, TEXT("[Diag] TryActivateAbilityByClass result: %s"),
+			bActivated ? TEXT("activated") : TEXT("FAILED — CanActivateAbility 실패 (BlockedTags/RequiredTags/Cost 확인)"));
 	}
 
 	if (!bActivated)

@@ -9,6 +9,7 @@
 #include "GE/GE_GSPotionCost.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GuitarSoulsGAS.h"
+#include "GameFramework/Character.h"
 #include "Tags/GSGASGameplayTags.h"
 
 UGA_UsePotion::UGA_UsePotion()
@@ -50,13 +51,21 @@ void UGA_UsePotion::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
 		return;
 	}
 
-	// 이동 차단 — EndAbility에서 Walking으로 원복
+	// 이동 제한 처리
 	if (ACharacter* Character = Cast<ACharacter>(ActorInfo->AvatarActor.Get()))
 	{
 		if (UCharacterMovementComponent* MoveComp = Character->GetCharacterMovement())
 		{
-			MoveComp->DisableMovement();
-			MoveComp->StopMovementImmediately();
+			if (bBlockMovement)
+			{
+				MoveComp->DisableMovement();
+				MoveComp->StopMovementImmediately();
+			}
+			else
+			{
+				OriginalMaxWalkSpeed = MoveComp->MaxWalkSpeed;
+				MoveComp->MaxWalkSpeed = ReducedMaxWalkSpeed;
+			}
 		}
 	}
 
@@ -68,27 +77,7 @@ void UGA_UsePotion::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
 		return;
 	}
 
-	// 힐 GE 즉시 적용 (Health += HealAmount)
-	FGameplayEffectContextHandle ContextHandle = ASC->MakeEffectContext();
-	ContextHandle.AddSourceObject(this);
-	FGameplayEffectSpecHandle SpecHandle = ASC->MakeOutgoingSpec(UGE_GSHeal::StaticClass(), 1.f, ContextHandle);
-	if (SpecHandle.IsValid())
-	{
-		SpecHandle.Data->SetSetByCallerMagnitude(GSGASGameplayTags::Data_HealAmount, HealAmount);
-		ASC->ApplyGameplayEffectSpecToSelf(*SpecHandle.Data.Get());
-		GSGAS_LOG(LogGSGAS, Log, TEXT("GA_UsePotion: Healed %.1f HP. Remaining potions: %.0f"),
-			HealAmount, CurrentPotionCount - 1.f);
-	}
-	else
-	{
-		GSGAS_LOG(LogGSGAS, Warning, TEXT("GA_UsePotion: GE_GSHeal SpecHandle invalid."));
-	}
-
-	// 회복 연출 Cue 실행 (HealCueTag 설정된 경우에만)
-	if (HealCueTag.IsValid())
-	{
-		ASC->ExecuteGameplayCue(HealCueTag, ASC->MakeEffectContext());
-	}
+	GSGAS_LOG(LogGSGAS, Log, TEXT("GA_UsePotion: Potion consumed. Remaining: %.0f"), CurrentPotionCount - 1.f);
 
 	// 몽타주 재생 (미설정 시 즉시 종료)
 	if (PotionMontage)
@@ -111,16 +100,24 @@ void UGA_UsePotion::EndAbility(const FGameplayAbilitySpecHandle Handle,
 	const FGameplayAbilityActivationInfo ActivationInfo,
 	bool bReplicateEndAbility, bool bWasCancelled)
 {
-	// 이동 원복 (DisableMovement로 MOVE_None이 된 경우에만)
+	// 이동 원복
 	if (ActorInfo)
 	{
 		if (ACharacter* Character = Cast<ACharacter>(ActorInfo->AvatarActor.Get()))
 		{
 			if (UCharacterMovementComponent* MoveComp = Character->GetCharacterMovement())
 			{
-				if (MoveComp->MovementMode == MOVE_None)
+				if (bBlockMovement)
 				{
-					MoveComp->SetMovementMode(MOVE_Walking);
+					if (MoveComp->MovementMode == MOVE_None)
+					{
+						MoveComp->SetMovementMode(MOVE_Walking);
+					}
+				}
+				else if (OriginalMaxWalkSpeed > 0.f)
+				{
+					MoveComp->MaxWalkSpeed = OriginalMaxWalkSpeed;
+					OriginalMaxWalkSpeed = 0.f;
 				}
 			}
 		}
@@ -129,12 +126,42 @@ void UGA_UsePotion::EndAbility(const FGameplayAbilitySpecHandle Handle,
 	Super::EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);
 }
 
+void UGA_UsePotion::ApplyHeal()
+{
+	UAbilitySystemComponent* ASC = GetAbilitySystemComponentFromActorInfo();
+	if (!ASC)
+	{
+		return;
+	}
+
+	FGameplayEffectContextHandle ContextHandle = ASC->MakeEffectContext();
+	ContextHandle.AddSourceObject(this);
+	FGameplayEffectSpecHandle SpecHandle = ASC->MakeOutgoingSpec(UGE_GSHeal::StaticClass(), 1.f, ContextHandle);
+	if (SpecHandle.IsValid())
+	{
+		SpecHandle.Data->SetSetByCallerMagnitude(GSGASGameplayTags::Data_HealAmount, HealAmount);
+		ASC->ApplyGameplayEffectSpecToSelf(*SpecHandle.Data.Get());
+		GSGAS_LOG(LogGSGAS, Log, TEXT("GA_UsePotion: Healed %.1f HP."), HealAmount);
+	}
+	else
+	{
+		GSGAS_LOG(LogGSGAS, Warning, TEXT("GA_UsePotion: GE_GSHeal SpecHandle invalid."));
+	}
+
+	if (HealCueTag.IsValid())
+	{
+		ASC->ExecuteGameplayCue(HealCueTag, ASC->MakeEffectContext());
+	}
+}
+
 void UGA_UsePotion::OnMontageCompleted()
 {
+	ApplyHeal();
 	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, false, false);
 }
 
 void UGA_UsePotion::OnMontageInterrupted()
 {
+	// 힐 적용 없이 종료 — 포션 수량은 CommitAbility에서 이미 소모됨
 	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, false, true);
 }

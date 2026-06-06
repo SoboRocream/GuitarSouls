@@ -9,8 +9,10 @@
 
 /**
  * 포션 사용 어빌리티
- * - PotionCount > 0 확인 → CommitAbility(PotionCount -1) → Health 즉시 회복 → 몽타주 재생
- * - 몽타주 미설정 시 즉시 종료
+ * - PotionCount > 0 확인 → CommitAbility(PotionCount -1) → 몽타주 재생 → Complete 시 Health 회복
+ * - Interrupted 시 포션 수량만 소모 (회복 없음)
+ * - bBlockMovement true: 몽타주 재생 중 이동 완전 차단
+ * - bBlockMovement false: MaxWalkSpeed를 MovementSpeedMultiplier 비율로 임시 감소
  */
 UCLASS()
 class GUITARSOULSGAS_API UGA_UsePotion : public UGameplayAbility
@@ -40,14 +42,26 @@ protected:
 	TObjectPtr<UAnimMontage> PotionMontage;
 
 	// 회복 연출 GameplayCue 태그 (미설정 시 Cue 미발동)
-	// BP에서 GameplayCue.Character.Heal 등으로 설정
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Potion")
 	FGameplayTag HealCueTag;
 
+	// true: 몽타주 재생 중 이동 완전 차단 / false: 속도만 임시 감소
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Potion|Movement")
+	bool bBlockMovement = true;
+
+	// bBlockMovement가 false일 때 적용할 임시 MaxWalkSpeed 수치
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Potion|Movement",
+		meta = (EditCondition = "!bBlockMovement", ClampMin = "0.0"))
+	float ReducedMaxWalkSpeed = 150.f;
+
 private:
+	void ApplyHeal();
+
 	UFUNCTION()
 	void OnMontageCompleted();
 
 	UFUNCTION()
 	void OnMontageInterrupted();
+
+	float OriginalMaxWalkSpeed = 0.f;
 };
