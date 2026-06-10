@@ -62,3 +62,8 @@ void UGA_LockOn::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const 
 	}
 	EndAbility(Handle, ActorInfo, ActivationInfo, true, false);
 }
+
+void UGA_LockOn::CancelAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateCancelAbility)
+{
+	EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateCancelAbility, true);
+}

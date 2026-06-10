@@ -75,3 +75,8 @@ void UGA_Interact::ActivateAbility(const FGameplayAbilitySpecHandle Handle, cons
 
 	EndAbility(Handle, ActorInfo, ActivationInfo, true, false);
 }
+
+void UGA_Interact::CancelAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateCancelAbility)
+{
+	EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateCancelAbility, true);
+}

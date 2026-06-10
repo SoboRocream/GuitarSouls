@@ -31,6 +31,7 @@ public:
 	float GetFinalDamage(const FGameplayTag& Tag) const;
 
 	FORCEINLINE class UGSGASWeaponCollisionComponent* GetWeaponCollision() const { return MainWeaponCollision; }
+	FORCEINLINE class UStaticMeshComponent* GetWeaponMesh() const { return Mesh; }
 	FORCEINLINE FName GetEquipSocketName() const { return EquipSocketName; }
 	FORCEINLINE FName GetUnEquipSocketName() const { return UnEquipSocketName; }
 	FORCEINLINE FGameplayTag GetWeaponTypeTag() const { return WeaponTypeTag; }

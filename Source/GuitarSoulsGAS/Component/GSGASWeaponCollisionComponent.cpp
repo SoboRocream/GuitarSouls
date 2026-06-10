@@ -4,7 +4,11 @@
 #include "Component/GSGASWeaponCollisionComponent.h"
 
 #include "GuitarSoulsGAS.h"
+#include "AbilitySystemBlueprintLibrary.h"
+#include "AbilitySystemComponent.h"
+#include "Kismet/GameplayStatics.h"
 #include "Kismet/KismetSystemLibrary.h"
+#include "Particles/ParticleSystem.h"
 
 static TAutoConsoleVariable<int32> CVarDrawGSGASWeaponCollision(
 	TEXT("gsgas.debug.weaponcollision"),
@@ -138,10 +142,31 @@ void UGSGASWeaponCollisionComponent::PerformCollisionTrace()
 		}
  
 		AlreadyHitActors.Add(HitActor);
- 
+
 		GSGAS_LOG(LogGSGAS, Log, TEXT("Hit: %s"), *HitActor->GetName());
- 
+
 		OnHitActor.Broadcast(HitResult);
+
+		if (HitParticle)
+		{
+			bool bBlocked = false;
+			if (!ParticleBlockedTags.IsEmpty())
+			{
+				if (UAbilitySystemComponent* TargetASC =
+					UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(HitActor))
+				{
+					bBlocked = TargetASC->HasAnyMatchingGameplayTags(ParticleBlockedTags);
+				}
+			}
+
+			if (!bBlocked)
+			{
+				UGameplayStatics::SpawnEmitterAtLocation(
+					GetWorld(), HitParticle,
+					HitResult.ImpactPoint,
+					HitResult.ImpactNormal.Rotation());
+			}
+		}
 	}
 }
 

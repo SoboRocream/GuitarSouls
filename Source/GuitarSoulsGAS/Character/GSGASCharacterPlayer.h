@@ -76,7 +76,10 @@ protected:
 	
 	UPROPERTY(EditAnywhere, Category=Input)
 	TObjectPtr<class UInputAction> UseItemAction;
-	
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<class UInputAction> QuitAction;
+
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category=Interact)
 	TObjectPtr<class USphereComponent> InteractDetectionSphere;
 
@@ -87,6 +90,7 @@ protected:
 	
 	void Move(const FInputActionValue& Value);
 	void Look(const FInputActionValue& Value);
+	void OnQuit();
 	
 	UFUNCTION()
 	void OnInteractSphereBeginOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
@@ -99,6 +103,9 @@ protected:
 	UFUNCTION()
 	void OnOutOfHealth();
 	void OnDeath();
+
+	UFUNCTION(BlueprintImplementableEvent, Category = "Death")
+	void OnDeathBP();
 	
 	// GAS Init Section
 protected:
@@ -113,5 +120,14 @@ protected:
 	UPROPERTY()
 	TObjectPtr<class UGSGASPlayerHUDWidget> PlayerHUDWidget;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = UI)
+	TSubclassOf<class UGSGASGameOverWidget> GameOverWidgetClass;
 
+	// 사망 후 GameOver 위젯 표시까지의 지연 (초)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = UI)
+	float GameOverWidgetDelay = 2.f;
+
+private:
+	void ShowGameOverWidget();
+	FTimerHandle GameOverTimerHandle;
 };

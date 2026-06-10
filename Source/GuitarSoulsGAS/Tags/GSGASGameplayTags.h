@@ -28,6 +28,7 @@ namespace GSGASGameplayTags
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Data_Damage);
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Data_StaminaCost);
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Data_HealAmount);
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Data_KnockbackStrength);
 
 	// ── AI State ──────────────────────────────────────────────────────────────────
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(AI_State_Combat);

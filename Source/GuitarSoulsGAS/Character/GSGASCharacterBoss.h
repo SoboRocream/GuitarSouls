@@ -78,10 +78,20 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Boss|UI")
 	FText BossName = INVTEXT("Boss");
 
+	// 사망 후 Victory 위젯 표시까지의 지연 (초)
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Boss|UI")
+	float VictoryWidgetDelay = 3.f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Boss|UI")
+	TSubclassOf<class UGSGASVictoryWidget> VictoryWidgetClass;
+
 private:
 	UPROPERTY()
 	TObjectPtr<class UGSGASBossHpBar> BossHpBarWidget;
 
 	// 전환이 이미 발동됐는지 여부 (중복 방지 1차 방어)
 	bool bPhaseTransitionTriggered = false;
+
+	void ShowVictoryWidget(TSubclassOf<UGSGASVictoryWidget> WidgetClass);
+	FTimerHandle VictoryTimerHandle;
 };

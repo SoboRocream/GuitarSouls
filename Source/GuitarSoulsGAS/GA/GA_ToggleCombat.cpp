@@ -124,3 +124,8 @@ void UGA_ToggleCombat::ApplyCombatToggle()
 		GSGAS_LOG(LogGSGAS, Log, TEXT("ToggleCombat: Combat disabled. WeaponType=%s removed."), *WeaponTypeTag.ToString());
 	}
 }
+
+void UGA_ToggleCombat::CancelAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateCancelAbility)
+{
+	EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateCancelAbility, true);
+}

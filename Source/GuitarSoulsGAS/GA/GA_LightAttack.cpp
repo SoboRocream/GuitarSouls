@@ -152,8 +152,13 @@ void UGA_LightAttack::EndAbility(const FGameplayAbilitySpecHandle Handle, const 
 			GSGASGameplayTags::Character_State_ComboWindow,
 			EGameplayTagEventType::NewOrRemoved)
 			.Remove(ComboWindowTagHandle);
+
+		// 몽타주 강제 중단 시 AnimNotifyState.NotifyEnd가 호출되지 않아 ref count가
+		// 누적될 수 있으므로 EndAbility에서 강제로 0으로 초기화
+		ASC->SetLooseGameplayTagCount(GSGASGameplayTags::Character_State_AttackCollisionActive, 0);
+		ASC->SetLooseGameplayTagCount(GSGASGameplayTags::Character_State_ComboWindow, 0);
 	}
-    
+
 	ComboWindowTagHandle.Reset();
 	bIsComboInputQueued = false;
 	
@@ -363,4 +368,9 @@ void UGA_LightAttack::OnComboWindowTagChanged(const FGameplayTag Tag, int32 NewC
 
 		GSGAS_LOG(LogGSGAS, Log, TEXT("Combo jumped to section: %s"), *NextSection.ToString());
 	}
+}
+
+void UGA_LightAttack::CancelAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateCancelAbility)
+{
+	EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateCancelAbility, true);
 }

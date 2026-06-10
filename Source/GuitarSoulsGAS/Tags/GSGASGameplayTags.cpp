@@ -23,6 +23,7 @@ namespace GSGASGameplayTags
 	UE_DEFINE_GAMEPLAY_TAG(Data_Damage,                           "Data.Damage");
 	UE_DEFINE_GAMEPLAY_TAG(Data_StaminaCost,                      "Data.StaminaCost");
 	UE_DEFINE_GAMEPLAY_TAG(Data_HealAmount,                       "Data.HealAmount");
+	UE_DEFINE_GAMEPLAY_TAG(Data_KnockbackStrength,                "Data.KnockbackStrength");
 
 	// ── AI State ──────────────────────────────────────────────────────────────────
 	UE_DEFINE_GAMEPLAY_TAG(AI_State_Combat,             "AI.State.Combat");

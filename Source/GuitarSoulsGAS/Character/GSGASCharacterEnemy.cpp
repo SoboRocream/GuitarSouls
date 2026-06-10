@@ -159,7 +159,7 @@ void AGSGASCharacterEnemy::OnOutOfHealth()
 	OnDeath();
 }
 
-void AGSGASCharacterEnemy::OnDeath()
+void AGSGASCharacterEnemy::OnDeath_Implementation()
 {
 	if (ASC)
 	{
@@ -175,6 +175,7 @@ void AGSGASCharacterEnemy::OnDeath()
 	{
 		TargetingSphere->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	}
+	
 
 	if (USkeletalMeshComponent* MeshComp = GetMesh())
 	{
@@ -184,6 +185,7 @@ void AGSGASCharacterEnemy::OnDeath()
 	}
 	
 	HpBarWidgetComponent->DestroyComponent();
+	LockOnWidgetComponent->DestroyComponent();
 
 	GSGAS_LOG(LogGSGAS, Log, TEXT("%s died."), *GetName());
 }

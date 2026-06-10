@@ -12,6 +12,7 @@
 #include "Data/GSGASCollision.h"
 #include "Tags/GSGASGameplayTags.h"
 #include "UI/GSGASBossHpBar.h"
+#include "UI/GSGASVictoryWidget.h"
 
 AGSGASCharacterBoss::AGSGASCharacterBoss()
 {
@@ -167,6 +168,20 @@ void AGSGASCharacterBoss::OnHealthChanged(const FOnAttributeChangeData& Data)
 
 void AGSGASCharacterBoss::OnOutOfHealth()
 {
+	// Victory 위젯은 BP OnDeath 오버라이드와 무관하게 항상 실행되어야 하므로 여기서 처리
+	// BindWeakLambda(GetWorld(), ...) — 콜백 생존 여부를 World 기준으로 판단하므로
+	// 액터가 Destroy된 이후에도 타이머가 취소되지 않음
+	if (VictoryWidgetClass)
+	{
+		TSubclassOf<UGSGASVictoryWidget> CachedClass = VictoryWidgetClass;
+		FTimerDelegate Delegate;
+		Delegate.BindWeakLambda(GetWorld(), [this, CachedClass]()
+		{
+			ShowVictoryWidget(CachedClass);
+		});
+		GetWorldTimerManager().SetTimer(VictoryTimerHandle, Delegate, VictoryWidgetDelay, false);
+	}
+
 	OnDeath();
 }
 
@@ -193,4 +208,18 @@ void AGSGASCharacterBoss::OnDeath_Implementation()
 	}
 
 	GSGAS_LOG(LogGSGAS, Log, TEXT("Boss %s died."), *GetName());
+}
+
+void AGSGASCharacterBoss::ShowVictoryWidget(TSubclassOf<UGSGASVictoryWidget> WidgetClass)
+{
+	if (!WidgetClass) return;
+
+	APlayerController* PC = GetWorld()->GetFirstPlayerController();
+	if (!PC) return;
+
+	UGSGASVictoryWidget* VictoryWidget = CreateWidget<UGSGASVictoryWidget>(PC, WidgetClass);
+	if (VictoryWidget)
+	{
+		VictoryWidget->AddToViewport(10);
+	}
 }

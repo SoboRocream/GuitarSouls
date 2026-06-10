@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
+#include "GameplayTagContainer.h"
 #include "GSGASWeaponCollisionComponent.generated.h"
 
 DECLARE_MULTICAST_DELEGATE_OneParam(FGSGASOnHitActor, const FHitResult&);
@@ -55,6 +56,14 @@ public:
 	
 	UPROPERTY(EditAnywhere, Category = "Collision")
 	TArray<TEnumAsByte<EObjectTypeQuery>> TraceObjectTypes;
+
+	// 충돌 발생 위치에 스폰할 파티클 (무기 BP에서 에셋 지정)
+	UPROPERTY(EditAnywhere, Category = "Collision|FX")
+	TObjectPtr<class UParticleSystem> HitParticle;
+
+	// 대상이 이 태그 중 하나라도 갖고 있으면 HitParticle 스폰 안 함 (BP에서 설정)
+	UPROPERTY(EditAnywhere, Category = "Collision|FX")
+	FGameplayTagContainer ParticleBlockedTags;
 
 protected:
 	bool bCollisionEnabled = false;

@@ -138,3 +138,8 @@ void UGA_Roll::ApplyStaminaCost()
  
 	GSGAS_LOG(LogGSGAS, Log, TEXT("StaminaCostEffectClass applied: %.1f"), StaminaCost);
 }
+
+void UGA_Roll::CancelAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateCancelAbility)
+{
+	EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateCancelAbility, true);
+}

@@ -39,7 +39,9 @@ protected:
 	UFUNCTION()
 	void OnOutOfHealth();
 
+	UFUNCTION(BlueprintNativeEvent, Category = "Enemy")
 	void OnDeath();
+	virtual void OnDeath_Implementation();
 	
 protected:
 	// AttributeSet — ASC 등록은 생성자에서 자동 처리

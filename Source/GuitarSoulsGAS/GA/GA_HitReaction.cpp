@@ -6,7 +6,9 @@
 #include "GuitarSoulsGAS.h"
 #include "Abilities/Tasks/AbilityTask_PlayMontageAndWait.h"
 #include "Character/GSGASCharacterBase.h"
+#include "GameFramework/CharacterMovementComponent.h"
 #include "Item/GSGASWeapon.h"
+#include "Kismet/GameplayStatics.h"
 #include "Kismet/KismetMathLibrary.h"
 #include "Tags/GSGASGameplayTags.h"
 
@@ -34,6 +36,13 @@ void UGA_HitReaction::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
 		return;
 	}
 
+	// 피격 사운드 — 몽타주 유무와 무관하게 항상 재생 (보스처럼 몽타주 없는 경우 포함)
+	if (HitSound)
+	{
+		UGameplayStatics::PlaySoundAtLocation(
+			GetWorld(), HitSound, Character->GetActorLocation());
+	}
+
 	UAnimMontage* Montage = nullptr;
 	if (AGSGASWeapon* Weapon = Character->GetEquippedWeapon())
 	{
@@ -45,20 +54,14 @@ void UGA_HitReaction::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
 	}
 	if (!Montage)
 	{
-		GSGAS_LOG(LogGSGAS, Warning, TEXT("GA_HitReaction: No montage available."));
-		EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
+		// 몽타주 없음 — 사운드만 재생하고 종료 (보스 등 몽타주 불필요한 캐릭터)
+		EndAbility(Handle, ActorInfo, ActivationInfo, true, false);
 		return;
 	}
 
 	FName SectionName = NAME_None;
 	if (TriggerEventData && IsValid(TriggerEventData->Instigator))
 	{
-		SectionName = GetHitDirectionSectionName(
-			Character->GetActorLocation(),
-			Character->GetActorRotation(),
-			TriggerEventData->Instigator->GetActorLocation());
-
-		//Debug Log
 		const FVector VictimLoc = Character->GetActorLocation();
 		const FRotator VictimRot = Character->GetActorRotation();
 		const FVector AttackerLoc = TriggerEventData->Instigator->GetActorLocation();
@@ -70,12 +73,38 @@ void UGA_HitReaction::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
 			*VictimRot.ToString(),
 			*AttackerLoc.ToString(),
 			*SectionName.ToString());
-		//Debug Log
 	}
 	else
 	{
 		SectionName = FName(TEXT("Front"));
 		GSGAS_LOG(LogGSGAS, Log, TEXT("GA_HitReaction: No Instigator, defaulting to Front."));
+	}
+
+	// 회전 차단 (빙글빙글 방지) + 입력 차단
+	// MaxWalkSpeed = 0 은 root motion의 Velocity 적용을 방해하므로 사용 금지.
+	// 플레이어: InputComponent->bBlockInput으로 입력만 차단 (CMC는 건드리지 않아 root motion 정상 동작)
+	// 적/보스: InputComponent 없음 → 회전 차단만 적용 (BT 이동은 EndAbility 후 자연 재개)
+	if (UCharacterMovementComponent* CMC = Character->GetCharacterMovement())
+	{
+		bSavedOrientRotationToMovement = CMC->bOrientRotationToMovement;
+		CMC->bOrientRotationToMovement = false;
+	}
+	if (UInputComponent* IC = Character->InputComponent)
+	{
+		IC->bBlockInput = true;
+	}
+
+	// 넉백 — EventMagnitude > 0 인 경우(보스 공격 등)만 적용
+	if (TriggerEventData && TriggerEventData->EventMagnitude > 0.f
+		&& IsValid(TriggerEventData->Instigator))
+	{
+		const FVector ToVictim = (Character->GetActorLocation()
+			- TriggerEventData->Instigator->GetActorLocation()).GetSafeNormal2D();
+
+		UCharacterMovementComponent* CMC = Character->GetCharacterMovement();
+		CMC->SetMovementMode(MOVE_Falling);
+		CMC->Velocity = ToVictim * TriggerEventData->EventMagnitude
+			+ FVector(0.f, 0.f, 300.f);
 	}
 
 	MontageTask = UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy(
@@ -91,6 +120,22 @@ void UGA_HitReaction::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
 void UGA_HitReaction::EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo,
 	const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled)
 {
+	// 회전/입력 복원
+	if (ActorInfo)
+	{
+		if (AGSGASCharacterBase* Character = Cast<AGSGASCharacterBase>(ActorInfo->AvatarActor.Get()))
+		{
+			if (UCharacterMovementComponent* CMC = Character->GetCharacterMovement())
+			{
+				CMC->bOrientRotationToMovement = bSavedOrientRotationToMovement;
+			}
+			if (UInputComponent* IC = Character->InputComponent)
+			{
+				IC->bBlockInput = false;
+			}
+		}
+	}
+
 	MontageTask = nullptr;
 	Super::EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);
 }
@@ -131,4 +176,9 @@ FName UGA_HitReaction::GetHitDirectionSectionName(const FVector& VictimLocation,
 	{
 		return FName(TEXT("Back"));
 	}
+}
+
+void UGA_HitReaction::CancelAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateCancelAbility)
+{
+	EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateCancelAbility, true);
 }

@@ -131,6 +131,7 @@ void UGA_BossAttack::OnWeaponHit(const FHitResult& HitResult)
 	if (!SpecHandle.IsValid()) return;
 
 	SpecHandle.Data->SetSetByCallerMagnitude(GSGASGameplayTags::Data_Damage, Damage);
+	SpecHandle.Data->SetSetByCallerMagnitude(GSGASGameplayTags::Data_KnockbackStrength, KnockbackStrength);
 
 	FGameplayAbilityTargetDataHandle TargetDataHandle;
 	TargetDataHandle.Add(new FGameplayAbilityTargetData_SingleTargetHit(HitResult));
@@ -154,4 +155,9 @@ void UGA_BossAttack::OnAttackCollisionTagChanged(const FGameplayTag Tag, int32 N
 	{
 		WeaponCollision->TurnOffCollision();
 	}
+}
+
+void UGA_BossAttack::CancelAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateCancelAbility)
+{
+	EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateCancelAbility, true);
 }

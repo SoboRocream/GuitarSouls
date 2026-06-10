@@ -32,6 +32,11 @@ public:
 		const FGameplayAbilityActivationInfo ActivationInfo,
 		bool bReplicateEndAbility, bool bWasCancelled) override;
 
+	virtual void CancelAbility(const FGameplayAbilitySpecHandle Handle,
+		const FGameplayAbilityActorInfo* ActorInfo,
+		const FGameplayAbilityActivationInfo ActivationInfo,
+		bool bReplicateCancelAbility) override;
+
 protected:
 	// 공격 패턴 몽타주 (BP 자식에서 지정)
 	UPROPERTY(EditDefaultsOnly, Category = "Attack")
@@ -44,6 +49,10 @@ protected:
 	// 데미지 수치 (BP에서 조정)
 	UPROPERTY(EditDefaultsOnly, Category = "Attack", meta = (ClampMin = "0.0"))
 	float Damage = 20.f;
+
+	// 피격 시 넉백 강도 — 0이면 넉백 없음 (일반 적과 구분)
+	UPROPERTY(EditDefaultsOnly, Category = "Attack", meta = (ClampMin = "0.0"))
+	float KnockbackStrength = 600.f;
 
 private:
 	UFUNCTION()

@@ -68,21 +68,31 @@ void UGA_BossPhaseTransition::EndAbility(const FGameplayAbilitySpecHandle Handle
 	const FGameplayAbilityActivationInfo ActivationInfo,
 	bool bReplicateEndAbility, bool bWasCancelled)
 {
-	// GA가 외부에서 강제 취소됐고 아직 페이즈 전환이 완료되지 않은 경우:
-	// AbilityTask는 이미 종료되므로 AnimInstance에 직접 몽타주를 걸어 연출을 보장
-	if (bWasCancelled && !bTransitionFinished && TransitionMontage)
+	// GA가 외부에서 강제 취소됐고 아직 페이즈 전환이 완료되지 않은 경우
+	if (bWasCancelled && !bTransitionFinished)
 	{
-		if (ACharacter* Character = Cast<ACharacter>(ActorInfo->AvatarActor.Get()))
+		// TransitionMontage 유무와 관계없이 ActivateAbility에서 추가한 태그는 반드시 제거
+		if (UAbilitySystemComponent* ASC = ActorInfo->AbilitySystemComponent.Get())
 		{
-			if (UAnimInstance* AnimInstance = Character->GetMesh() ? Character->GetMesh()->GetAnimInstance() : nullptr)
+			ASC->RemoveLooseGameplayTag(GSGASGameplayTags::Character_State_Invincible);
+			ASC->RemoveLooseGameplayTag(GSGASGameplayTags::Boss_State_PhaseTransition);
+		}
+
+		// 몽타주 연출 보장은 가능한 경우에만
+		if (TransitionMontage)
+		{
+			if (ACharacter* Character = Cast<ACharacter>(ActorInfo->AvatarActor.Get()))
 			{
-				AnimInstance->Montage_Play(TransitionMontage);
+				if (UAnimInstance* AnimInstance = Character->GetMesh() ? Character->GetMesh()->GetAnimInstance() : nullptr)
+				{
+					AnimInstance->Montage_Play(TransitionMontage);
 
-				FOnMontageEnded EndDelegate;
-				EndDelegate.BindUObject(this, &UGA_BossPhaseTransition::OnMontageEndedDirect);
-				AnimInstance->Montage_SetEndDelegate(EndDelegate, TransitionMontage);
+					FOnMontageEnded EndDelegate;
+					EndDelegate.BindUObject(this, &UGA_BossPhaseTransition::OnMontageEndedDirect);
+					AnimInstance->Montage_SetEndDelegate(EndDelegate, TransitionMontage);
 
-				GSGAS_LOG(LogGSGAS, Log, TEXT("GA_BossPhaseTransition: replaying montage after cancel."));
+					GSGAS_LOG(LogGSGAS, Log, TEXT("GA_BossPhaseTransition: replaying montage after cancel."));
+				}
 			}
 		}
 	}
@@ -132,4 +142,9 @@ void UGA_BossPhaseTransition::FinishTransition()
 	{
 		EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, false, false);
 	}
+}
+
+void UGA_BossPhaseTransition::CancelAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateCancelAbility)
+{
+	EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateCancelAbility, true);
 }

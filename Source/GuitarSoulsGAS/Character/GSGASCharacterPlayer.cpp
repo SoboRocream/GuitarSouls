@@ -18,6 +18,9 @@
 #include "Component/GSGASTargetingComponent.h"
 #include "Tags/GSGASGameplayTags.h"
 #include "UI/GSGASPlayerHUDWidget.h"
+#include "UI/GSGASGameOverWidget.h"
+#include "Attribute/GSAttributeSet.h"
+#include "Kismet/KismetSystemLibrary.h"
 
 AGSGASCharacterPlayer::AGSGASCharacterPlayer()
 {
@@ -55,11 +58,35 @@ AGSGASCharacterPlayer::AGSGASCharacterPlayer()
 void AGSGASCharacterPlayer::PossessedBy(AController* NewController)
 {
 	Super::PossessedBy(NewController);
+
+	// IMC 등록 + 입력 모드 초기화
+	// BeginPlay는 스폰 직후 Controller가 null일 수 있으므로 여기서 처리.
+	// UIOnly 상태가 PlayerController에 남아있을 경우(PIE 레벨 재로드 등)를 대비해 GameOnly로 명시 리셋.
+	if (APlayerController* PlayerController = Cast<APlayerController>(NewController))
+	{
+		if (UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PlayerController->GetLocalPlayer()))
+		{
+			if (DefaultMappingContext)
+			{
+				Subsystem->AddMappingContext(DefaultMappingContext, 0);
+			}
+		}
+
+		FInputModeGameOnly GameInputMode;
+		PlayerController->SetInputMode(GameInputMode);
+		PlayerController->bShowMouseCursor = false;
+	}
+
 	AGSGASPlayerState* GASPS = GetPlayerState<AGSGASPlayerState>();
 	if (GASPS)
 	{
 		ASC = GASPS->GetAbilitySystemComponent();
 		ASC->InitAbilityActorInfo(GASPS, this);
+
+		if (UGSAttributeSet* AttributeSet = GASPS->GetAttributeSet())
+		{
+			AttributeSet->OnOutOfHealth.AddUObject(this, &AGSGASCharacterPlayer::OnOutOfHealth);
+		}
 
 		// 공통 어빌리티 부여 (Base에서 정의)
 		for (const auto& StartAbility : StartAbilities)
@@ -131,16 +158,6 @@ FRotator AGSGASCharacterPlayer::GetComboFacingRotation() const
 void AGSGASCharacterPlayer::BeginPlay()
 {
 	Super::BeginPlay();
-	if (APlayerController* PlayerController = Cast<APlayerController>(GetController()))
-	{
-		if (UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PlayerController->GetLocalPlayer()))
-		{
-			if (DefaultMappingContext)
-			{
-				Subsystem->AddMappingContext(DefaultMappingContext, 0);
-			}
-		}
-	}
 
 	// HUD 생성 및 ASC 연결
 	if (PlayerHUDWidgetClass)
@@ -199,6 +216,12 @@ void AGSGASCharacterPlayer::SetupGASInputComponent()
 		
 		// 아이템 사용 (InputID: 7) E
 		EnhancedInputComponent->BindAction(UseItemAction, ETriggerEvent::Started,this, &AGSGASCharacterPlayer::GASInputPressed, 7);
+
+		// ESC — 즉시 게임 종료
+		if (QuitAction)
+		{
+			EnhancedInputComponent->BindAction(QuitAction, ETriggerEvent::Started, this, &AGSGASCharacterPlayer::OnQuit);
+		}
 	}
 }
 
@@ -249,6 +272,11 @@ void AGSGASCharacterPlayer::Move(const FInputActionValue& Value)
 
 		LastMovementInput = CurrentMovementInput;
 	}
+}
+
+void AGSGASCharacterPlayer::OnQuit()
+{
+	UKismetSystemLibrary::QuitGame(this, Cast<APlayerController>(GetController()), EQuitPreference::Quit, false);
 }
 
 void AGSGASCharacterPlayer::Look(const FInputActionValue& Value)
@@ -303,13 +331,13 @@ void AGSGASCharacterPlayer::OnDeath()
 	{
 		DisableInput(PlayerController);
 	}
- 
+
 	// 콜리전 비활성화
 	if (UCapsuleComponent* Capsule = GetCapsuleComponent())
 	{
 		Capsule->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	}
- 
+
 	// 래그돌
 	if (USkeletalMeshComponent* MeshComponent = GetMesh())
 	{
@@ -317,10 +345,29 @@ void AGSGASCharacterPlayer::OnDeath()
 		MeshComponent->SetCollisionResponseToChannel(ECC_Camera, ECR_Ignore);
 		MeshComponent->SetSimulatePhysics(true);
 	}
- 
+
 	// 사망 태그 부여
 	if (ASC)
 	{
 		ASC->AddLooseGameplayTag(GSGASGameplayTags::Character_State_Death);
+	}
+
+	// 지연 후 GameOver 위젯 표시
+	if (GameOverWidgetClass)
+	{
+		GetWorldTimerManager().SetTimer(GameOverTimerHandle, this, &AGSGASCharacterPlayer::ShowGameOverWidget, GameOverWidgetDelay, false);
+	}
+
+	OnDeathBP();
+}
+
+void AGSGASCharacterPlayer::ShowGameOverWidget()
+{
+	if (!GameOverWidgetClass) return;
+
+	UGSGASGameOverWidget* GameOverWidget = CreateWidget<UGSGASGameOverWidget>(GetWorld(), GameOverWidgetClass);
+	if (GameOverWidget)
+	{
+		GameOverWidget->AddToViewport(10);
 	}
 }

@@ -139,8 +139,11 @@ void UGA_EnemyAttack::EndAbility(const FGameplayAbilitySpecHandle Handle, const 
 			GSGASGameplayTags::Character_State_ComboWindow,
 			EGameplayTagEventType::NewOrRemoved)
 			.Remove(ComboWindowTagHandle);
+
+		ASC->SetLooseGameplayTagCount(GSGASGameplayTags::Character_State_AttackCollisionActive, 0);
+		ASC->SetLooseGameplayTagCount(GSGASGameplayTags::Character_State_ComboWindow, 0);
 	}
-	
+
 	HitDelegateHandle.Reset();
 	CollisionTagHandle.Reset();
 	ComboWindowTagHandle.Reset();
@@ -375,4 +378,9 @@ void UGA_EnemyAttack::OnComboWindowTagChanged(const FGameplayTag Tag, int32 NewC
 	CurrentComboIndex++;
 	ApplyStaminaCost();
 	MontageJumpToSection(GetCurrentSectionName());
+}
+
+void UGA_EnemyAttack::CancelAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateCancelAbility)
+{
+	EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateCancelAbility, true);
 }

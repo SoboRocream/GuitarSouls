@@ -27,6 +27,9 @@ public:
 	FORCEINLINE bool IsCombatEnabled() const { return bCombatEnabled; }
 	
 	void SetCombatEnabled(bool bEnabled);
+
+	UFUNCTION(BlueprintCallable, Category = "Weapon")
+	void DisableEquippedWeaponPhysics();
 	
 	virtual float TakeDamage(float DamageAmount, const FDamageEvent& DamageEvent,
 		AController* EventInstigator, AActor* DamageCauser) override;

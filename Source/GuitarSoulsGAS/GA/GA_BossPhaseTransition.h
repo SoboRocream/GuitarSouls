@@ -38,6 +38,11 @@ public:
 		const FGameplayAbilityActivationInfo ActivationInfo,
 		bool bReplicateEndAbility, bool bWasCancelled) override;
 
+	virtual void CancelAbility(const FGameplayAbilitySpecHandle Handle,
+		const FGameplayAbilityActorInfo* ActorInfo,
+		const FGameplayAbilityActivationInfo ActivationInfo,
+		bool bReplicateCancelAbility) override;
+
 protected:
 	// 전환 연출 몽타주 (미설정 시 FallbackDelay로 대체)
 	UPROPERTY(EditDefaultsOnly, Category = "Boss|Phase")

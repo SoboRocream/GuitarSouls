@@ -122,8 +122,10 @@ void UGA_HeavyAttack::EndAbility(const FGameplayAbilitySpecHandle Handle, const 
 			GSGASGameplayTags::Character_State_AttackCollisionActive,
 			EGameplayTagEventType::NewOrRemoved)
 			.Remove(CollisionTagHandle);
+
+		ASC->SetLooseGameplayTagCount(GSGASGameplayTags::Character_State_AttackCollisionActive, 0);
 	}
- 
+
 	HitDelegateHandle.Reset();
 	CollisionTagHandle.Reset();
 	MontageTask = nullptr;
@@ -280,4 +282,9 @@ void UGA_HeavyAttack::OnAttackCollisionTagChanged(const FGameplayTag Tag, int32 
 		WeaponCollision->TurnOffCollision();
 		CachedWeapon->DeactivateTrail();
 	}
+}
+
+void UGA_HeavyAttack::CancelAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateCancelAbility)
+{
+	EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateCancelAbility, true);
 }

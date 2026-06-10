@@ -84,6 +84,10 @@ void UGSAttributeSet::PostGameplayEffectExecute(const struct FGameplayEffectModC
 
 				EventData.Instigator = Attacker;
 				EventData.ContextHandle = Data.EffectSpec.GetEffectContext();
+				// 넉백 강도: GA_BossAttack이 설정한 경우에만 > 0, 나머지는 0 (fallback)
+				EventData.EventMagnitude = Data.EffectSpec.GetSetByCallerMagnitude(
+					GSGASGameplayTags::Data_KnockbackStrength, false, 0.f);
+
 				UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(
 					GetOwningActor(),
 					GSGASGameplayTags::Character_Action_HitReaction,

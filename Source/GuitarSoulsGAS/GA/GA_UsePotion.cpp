@@ -156,12 +156,19 @@ void UGA_UsePotion::ApplyHeal()
 
 void UGA_UsePotion::OnMontageCompleted()
 {
+	if (!IsActive()) return;
 	ApplyHeal();
 	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, false, false);
 }
 
 void UGA_UsePotion::OnMontageInterrupted()
 {
+	if (!IsActive()) return;
 	// 힐 적용 없이 종료 — 포션 수량은 CommitAbility에서 이미 소모됨
 	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, false, true);
+}
+
+void UGA_UsePotion::CancelAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateCancelAbility)
+{
+	EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateCancelAbility, true);
 }

@@ -41,6 +41,17 @@ void AGSGASCharacterBase::SetCombatEnabled(bool bEnabled)
 	bCombatEnabled = bEnabled;
 }
 
+void AGSGASCharacterBase::DisableEquippedWeaponPhysics()
+{
+	if (!EquippedWeapon) return;
+
+	if (UStaticMeshComponent* WeaponMesh = EquippedWeapon->GetWeaponMesh())
+	{
+		WeaponMesh->SetSimulatePhysics(false);
+		WeaponMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	}
+}
+
 float AGSGASCharacterBase::TakeDamage(float DamageAmount, const FDamageEvent& DamageEvent, AController* EventInstigator,
                                       AActor* DamageCauser)
 {
