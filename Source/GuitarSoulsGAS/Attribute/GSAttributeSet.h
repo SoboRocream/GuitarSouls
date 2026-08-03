@@ -29,6 +29,8 @@ public:
 	ATTRIBUTE_ACCESSORS(UGSAttributeSet, Stamina);
 	ATTRIBUTE_ACCESSORS(UGSAttributeSet, MaxStamina);
 	ATTRIBUTE_ACCESSORS(UGSAttributeSet, Damage);
+	ATTRIBUTE_ACCESSORS(UGSAttributeSet, AttackPower);
+	ATTRIBUTE_ACCESSORS(UGSAttributeSet, Defense);
 	ATTRIBUTE_ACCESSORS(UGSAttributeSet, PotionCount);
 	ATTRIBUTE_ACCESSORS(UGSAttributeSet, MaxPotionCount);
 	
@@ -53,6 +55,14 @@ protected:
 	//Damage
 	UPROPERTY(BlueprintReadOnly, Category=Attribute, meta=(AllowPrivateAccess=true))
 	FGameplayAttributeData Damage;
+
+	// AttackPower — 공격력 배율. Base 1.0, 버프 GE가 Current를 증가시킴
+	UPROPERTY(BlueprintReadOnly, Category=Attribute, meta=(AllowPrivateAccess=true))
+	FGameplayAttributeData AttackPower;
+
+	// Defense — 방어력(피해 감산). Base 0
+	UPROPERTY(BlueprintReadOnly, Category=Attribute, meta=(AllowPrivateAccess=true))
+	FGameplayAttributeData Defense;
 
 	// Potion
 	UPROPERTY(BlueprintReadOnly, Category=Attribute, meta=(AllowPrivateAccess=true))

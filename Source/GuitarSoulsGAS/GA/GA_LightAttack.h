@@ -47,7 +47,11 @@ protected:
  
 	UPROPERTY(EditDefaultsOnly, Category = "Attack")
 	TSubclassOf<UGameplayEffect> StaminaCostEffectClass;
- 
+
+	// 적중 성공 시 자기 자신에게 적용할 온-히트 버프 (광폭화 스택 GE 지정)
+	UPROPERTY(EditDefaultsOnly, Category = "Attack")
+	TSubclassOf<UGameplayEffect> OnHitSelfEffectClass;
+
 	UPROPERTY()
 	TObjectPtr<class UAbilityTask_PlayMontageAndWait> MontageTask;
 

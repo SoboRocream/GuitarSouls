@@ -15,6 +15,8 @@ UGSAttributeSet::UGSAttributeSet()
 	InitStamina(100.f);
 	InitMaxStamina(100.f);
 	InitDamage(0.f);
+	InitAttackPower(1.f);
+	InitDefense(0.f);
 	InitPotionCount(5.f);
 	InitMaxPotionCount(5.f);
 }

@@ -11,6 +11,7 @@
 #include "Abilities/Tasks/AbilityTask_PlayMontageAndWait.h"
 #include "Attribute/GSAttributeSet.h"
 #include "Tags/GSGASGameplayTags.h"
+#include "Engine/Engine.h"
 
 UGA_HeavyAttack::UGA_HeavyAttack()
 {
@@ -237,6 +238,28 @@ void UGA_HeavyAttack::ApplyDamageToTarget(const FHitResult& HitResult)
 	}
  
 	GSGAS_LOG(LogGSGAS, Log, TEXT("Damage applied to %s: %.1f"), *HitActor->GetName(), FinalDamage);
+
+	// 적중 성공 시 자기 자신에게 온-히트 버프(광폭화 스택) 적용
+	if (OnHitSelfEffectClass)
+	{
+		FGameplayEffectSpecHandle SelfSpec = MakeOutgoingGameplayEffectSpec(OnHitSelfEffectClass);
+		if (SelfSpec.IsValid())
+		{
+			ApplyGameplayEffectSpecToOwner(GetCurrentAbilitySpecHandle(), GetCurrentActorInfo(),
+				GetCurrentActivationInfo(), SelfSpec);
+
+			// 디버그: 현재 스택(타수)을 화면에 표시
+			if (UAbilitySystemComponent* OwnerASC = GetAbilitySystemComponentFromActorInfo())
+			{
+				const int32 Stacks = OwnerASC->GetGameplayEffectCount(OnHitSelfEffectClass, nullptr);
+				if (GEngine)
+				{
+					GEngine->AddOnScreenDebugMessage(1, 2.f, FColor::Orange,
+						FString::Printf(TEXT("Berserk Stacks: %d"), Stacks));
+				}
+			}
+		}
+	}
 }
 
 // ── 콜백 ───────────────────────────────────────────────────────────────────────
