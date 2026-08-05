@@ -24,6 +24,17 @@ public:
 
 	virtual FRotator GetComboFacingRotation() const override;
 
+	// [전시용] 광폭화 방식 전환 데모 ------------------------------------------------
+	// true면 컴포넌트 방식, false면 GAS(BPGE_Berserk) 방식으로 광폭화를 처리한다.
+	// 공격 GA가 적중 시 이 값을 보고 분기한다.
+	FORCEINLINE bool IsUsingComponentBerserk() const { return bUseComponentBerserk; }
+	FORCEINLINE class UGSGASBerserkComponent* GetBerserkComponent() const { return BerserkComponent; }
+
+	// GAS ↔ 컴포넌트 모드 전환 (BP 입력 노드에서 호출).
+	// 양쪽 스택을 초기화해 혼선을 막고, 현재 모드를 화면에 표시한다.
+	UFUNCTION(BlueprintCallable, Category = "Berserk Demo")
+	void ToggleBerserkMode();
+
 protected:
 	virtual void BeginPlay() override;
 	virtual void SetupPlayerInputComponent(UInputComponent* PlayerInputComponent) override;
@@ -130,4 +141,18 @@ protected:
 private:
 	void ShowGameOverWidget();
 	FTimerHandle GameOverTimerHandle;
+
+	// [전시용] 광폭화 데모 Section
+protected:
+	// 컴포넌트 방식 광폭화 구현체 (GAS 대조군)
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Berserk Demo", meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<class UGSGASBerserkComponent> BerserkComponent;
+
+	// true = 컴포넌트 방식, false = GAS 방식 (BP 입력에서 ToggleBerserkMode로 전환)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Berserk Demo", meta = (AllowPrivateAccess = "true"))
+	bool bUseComponentBerserk = false;
+
+	// 모드 전환 시 남은 GAS 광폭화 스택을 즉시 제거하기 위한 참조 (BPGE_Berserk 지정). 선택.
+	UPROPERTY(EditAnywhere, Category = "Berserk Demo", meta = (AllowPrivateAccess = "true"))
+	TSubclassOf<class UGameplayEffect> BerserkGASEffectClass;
 };

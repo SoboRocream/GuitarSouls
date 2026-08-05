@@ -66,16 +66,6 @@ void UGSGASDamageExecCalc::Execute_Implementation(
 	// 최종 데미지 = 기본 × 공격력 − 방어력, 하한 0
 	const float FinalDamage = FMath::Max(BaseDamage * AttackPower - Defense, 0.f);
 
-	// [진단용] 캡처된 AP vs 소스 ASC의 실제 AP 비교 — 원인 확정 후 제거 예정
-	float LiveAP = -1.f;
-	if (UAbilitySystemComponent* SrcASC = ExecutionParams.GetSourceAbilitySystemComponent())
-	{
-		LiveAP = SrcASC->GetNumericAttribute(UGSAttributeSet::GetAttackPowerAttribute());
-	}
-
-	GSGAS_LOG(LogGSGAS, Log, TEXT("DamageExecCalc: Base=%.1f capturedAP=%.2f liveAP=%.2f Def=%.1f -> Final=%.1f"),
-		BaseDamage, AttackPower, LiveAP, Defense, FinalDamage);
-
 	if (FinalDamage > 0.f)
 	{
 		// Damage 메타어트리뷰트에 출력 → 기존 PostGameplayEffectExecute가 Health로 반영

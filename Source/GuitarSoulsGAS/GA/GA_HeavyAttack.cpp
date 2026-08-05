@@ -4,6 +4,8 @@
 #include "GA/GA_HeavyAttack.h"
 #include "GuitarSoulsGAS.h"
 #include "Character/GSGASCharacterBase.h"
+#include "Character/GSGASCharacterPlayer.h"
+#include "Component/GSGASBerserkComponent.h"
 #include "Item/GSGASWeapon.h"
 #include "Component/GSGASWeaponCollisionComponent.h"
 #include "AbilitySystemComponent.h"
@@ -219,7 +221,21 @@ void UGA_HeavyAttack::ApplyDamageToTarget(const FHitResult& HitResult)
 		return;
 	}
  
-	const float FinalDamage = CachedWeapon->GetFinalDamage(HeavyAttackTag);
+	// [전시용] 광폭화 방식 분기: 컴포넌트 모드면 배율을 데미지에 직접 곱해 주입한다.
+	// (GAS 모드는 AttackPower 어트리뷰트를 ExecCalc가 자동 반영하므로 원본 데미지 그대로)
+	AGSGASCharacterPlayer* OwnerPlayer = Cast<AGSGASCharacterPlayer>(GetAvatarActorFromActorInfo());
+	const bool bComponentBerserk = OwnerPlayer && OwnerPlayer->IsUsingComponentBerserk();
+
+	float FinalDamage = CachedWeapon->GetFinalDamage(HeavyAttackTag);
+	float AppliedBerserkMult = 1.f;
+	if (bComponentBerserk)
+	{
+		if (UGSGASBerserkComponent* Berserk = OwnerPlayer->GetBerserkComponent())
+		{
+			AppliedBerserkMult = Berserk->GetDamageMultiplier();
+			FinalDamage *= AppliedBerserkMult;
+		}
+	}
 	SpecHandle.Data->SetSetByCallerMagnitude(GSGASGameplayTags::Data_Damage, FinalDamage);
  
 	FGameplayAbilityTargetDataHandle TargetDataHandle;
@@ -239,9 +255,25 @@ void UGA_HeavyAttack::ApplyDamageToTarget(const FHitResult& HitResult)
  
 	GSGAS_LOG(LogGSGAS, Log, TEXT("Damage applied to %s: %.1f"), *HitActor->GetName(), FinalDamage);
 
-	// 적중 성공 시 자기 자신에게 온-히트 버프(광폭화 스택) 적용
-	if (OnHitSelfEffectClass)
+	// 적중 성공 시 광폭화 스택 처리 — 모드별 분기
+	if (bComponentBerserk)
 	{
+		// 컴포넌트 방식: 스택 누적/타이머를 컴포넌트가 수동 관리
+		if (UGSGASBerserkComponent* Berserk = OwnerPlayer->GetBerserkComponent())
+		{
+			Berserk->OnHitLanded();
+			if (GEngine)
+			{
+				// [임시 검증] 이번 타격에 적용된 배율·데미지 + 다음 타격 스택
+				GEngine->AddOnScreenDebugMessage(1, 2.f, FColor::Orange,
+					FString::Printf(TEXT("Berserk[COMPONENT] x%.1f  Dmg:%.0f  (next Stacks:%d)"),
+						AppliedBerserkMult, FinalDamage, Berserk->GetCurrentStacks()));
+			}
+		}
+	}
+	else if (OnHitSelfEffectClass)
+	{
+		// GAS 방식: 온-히트 버프 GE를 자기 자신에게 적용 (스택/지속/만료는 GE 데이터가 처리)
 		FGameplayEffectSpecHandle SelfSpec = MakeOutgoingGameplayEffectSpec(OnHitSelfEffectClass);
 		if (SelfSpec.IsValid())
 		{
@@ -255,7 +287,7 @@ void UGA_HeavyAttack::ApplyDamageToTarget(const FHitResult& HitResult)
 				if (GEngine)
 				{
 					GEngine->AddOnScreenDebugMessage(1, 2.f, FColor::Orange,
-						FString::Printf(TEXT("Berserk Stacks: %d"), Stacks));
+						FString::Printf(TEXT("Berserk[GAS] Stacks: %d"), Stacks));
 				}
 			}
 		}

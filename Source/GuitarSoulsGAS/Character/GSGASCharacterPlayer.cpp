@@ -16,11 +16,13 @@
 #include "Data/GSGASCollision.h"
 #include "Interface/GSGASInteractInterface.h"
 #include "Component/GSGASTargetingComponent.h"
+#include "Component/GSGASBerserkComponent.h"
 #include "Tags/GSGASGameplayTags.h"
 #include "UI/GSGASPlayerHUDWidget.h"
 #include "UI/GSGASGameOverWidget.h"
 #include "Attribute/GSAttributeSet.h"
 #include "Kismet/KismetSystemLibrary.h"
+#include "Engine/Engine.h"
 
 AGSGASCharacterPlayer::AGSGASCharacterPlayer()
 {
@@ -53,6 +55,37 @@ AGSGASCharacterPlayer::AGSGASCharacterPlayer()
 	InteractDetectionSphere->SetCollisionResponseToAllChannels(ECR_Ignore);
 	InteractDetectionSphere->SetCollisionResponseToChannel(
 		CCHANNEL_GSGAS_INTERACTION, ECR_Overlap);
+
+	// [전시용] 컴포넌트 방식 광폭화 데모 컴포넌트
+	BerserkComponent = CreateDefaultSubobject<UGSGASBerserkComponent>(TEXT("BerserkComponent"));
+}
+
+void AGSGASCharacterPlayer::ToggleBerserkMode()
+{
+	bUseComponentBerserk = !bUseComponentBerserk;
+
+	// 컴포넌트 방식 스택 초기화
+	if (BerserkComponent)
+	{
+		BerserkComponent->ResetStacks();
+	}
+
+	// GAS 방식 잔여 스택 즉시 제거 (참조가 지정된 경우)
+	if (BerserkGASEffectClass)
+	{
+		if (UAbilitySystemComponent* MyASC = GetAbilitySystemComponent())
+		{
+			MyASC->RemoveActiveGameplayEffectBySourceEffect(BerserkGASEffectClass, MyASC);
+		}
+	}
+
+	if (GEngine)
+	{
+		GEngine->AddOnScreenDebugMessage(2, 3.f,
+			bUseComponentBerserk ? FColor::Cyan : FColor::Green,
+			FString::Printf(TEXT("Berserk Mode: %s"),
+				bUseComponentBerserk ? TEXT("COMPONENT") : TEXT("GAS")));
+	}
 }
 
 void AGSGASCharacterPlayer::PossessedBy(AController* NewController)
