@@ -17,7 +17,7 @@ class GUITARSOULSGAS_API AGSGASWeapon : public AActor, public IGSGASInteractInte
 public:	
 	AGSGASWeapon();
 
-	virtual void Interact(AActor* InteractionActor) override;
+	virtual void Interact_Implementation(AActor* InteractionActor) override;
 
 	UFUNCTION(BlueprintCallable, Category = "Weapon")
 	void EquipItem();

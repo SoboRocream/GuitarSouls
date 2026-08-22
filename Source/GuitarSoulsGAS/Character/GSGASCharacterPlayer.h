@@ -7,6 +7,8 @@
 #include "InputActionValue.h"
 #include "GSGASCharacterPlayer.generated.h"
 
+struct FGSGASPlayerSaveData;
+
 /**
  * 
  */
@@ -18,6 +20,12 @@ public:
 	AGSGASCharacterPlayer();
 
 	virtual void PossessedBy(AController* NewController) override;
+
+	// 레벨 전환(OpenLevel) 지속 — 현재 플레이어 상태를 저장 구조체로 캡처. 실패 시 false.
+	bool CaptureSaveData(FGSGASPlayerSaveData& OutData) const;
+
+	// 저장된 상태를 현재 플레이어에 복원. 실패 시 false(호출측에서 저장 데이터를 유지하도록).
+	bool RestoreFromSaveData(const FGSGASPlayerSaveData& Data);
 
 	FORCEINLINE float GetInteractRadius() const { return InteractRadius; }
 	FORCEINLINE FVector2D GetLastMovementInput() const { return LastMovementInput; }

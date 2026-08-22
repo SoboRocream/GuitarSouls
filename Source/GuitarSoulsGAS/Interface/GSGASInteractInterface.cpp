@@ -2,5 +2,3 @@
 
 
 #include "Interface/GSGASInteractInterface.h"
-
-// Add default functionality here for any IGSGASInteractInterface functions that are not pure virtual.

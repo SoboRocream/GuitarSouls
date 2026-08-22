@@ -7,7 +7,7 @@
 
 UGA_BossHitSound::UGA_BossHitSound()
 {
-	InstancingPolicy = EGameplayAbilityInstancingPolicy::NonInstanced;
+	InstancingPolicy = EGameplayAbilityInstancingPolicy::InstancedPerActor;
 
 	FAbilityTriggerData TriggerData;
 	TriggerData.TriggerTag = GSGASGameplayTags::Character_Action_HitReaction;

@@ -39,7 +39,7 @@ AGSGASWeapon::AGSGASWeapon()
 	WeaponTrail->SetAutoActivate(false);
 }
 
-void AGSGASWeapon::Interact(AActor* InteractionActor)
+void AGSGASWeapon::Interact_Implementation(AActor* InteractionActor)
 {
 	AGSGASCharacterBase* Character = Cast<AGSGASCharacterBase>(InteractionActor);
 	if (!Character)

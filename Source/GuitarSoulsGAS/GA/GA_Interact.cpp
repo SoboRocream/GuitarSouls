@@ -64,10 +64,11 @@ void UGA_Interact::ActivateAbility(const FGameplayAbilitySpecHandle Handle, cons
 	{
 		if (AActor* HitActor = Hit.GetActor())
 		{
-			if (IGSGASInteractInterface* Interactable = Cast<IGSGASInteractInterface>(HitActor))
+			// BP 구현체도 잡으려면 Cast가 아니라 Implements + Execute_ 패턴이어야 한다.
+			if (HitActor->Implements<UGSGASInteractInterface>())
 			{
 				GSGAS_LOG(LogGSGAS, Log, TEXT("Interacting with %s."), *HitActor->GetName());
-				Interactable->Interact(AvatarActor);
+				IGSGASInteractInterface::Execute_Interact(HitActor, AvatarActor);
 				break;
 			}
 		}

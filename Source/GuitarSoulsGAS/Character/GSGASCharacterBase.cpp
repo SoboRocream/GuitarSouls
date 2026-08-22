@@ -107,6 +107,11 @@ void AGSGASCharacterBase::BeginPlay()
 
 void AGSGASCharacterBase::SpawnAndEquipWeaponInCombat(TSubclassOf<AGSGASWeapon> WeaponClass)
 {
+	SpawnAndEquipWeapon(WeaponClass, true);
+}
+
+void AGSGASCharacterBase::SpawnAndEquipWeapon(TSubclassOf<AGSGASWeapon> WeaponClass, bool bEnterCombat)
+{
 	if (!WeaponClass)
 	{
 		return;
@@ -114,14 +119,14 @@ void AGSGASCharacterBase::SpawnAndEquipWeaponInCombat(TSubclassOf<AGSGASWeapon> 
 
 	if (!ASC)
 	{
-		GSGAS_LOG(LogGSGAS, Warning, TEXT("SpawnAndEquipWeaponInCombat: ASC not initialized on %s."), *GetName());
+		GSGAS_LOG(LogGSGAS, Warning, TEXT("SpawnAndEquipWeapon: ASC not initialized on %s."), *GetName());
 		return;
 	}
 
 	// 이미 무기가 장착됐으면 스킵 — bGASInitialized 가드가 있어야 여기 도달하지 않지만 이중 방어
 	if (EquippedWeapon)
 	{
-		GSGAS_LOG(LogGSGAS, Warning, TEXT("SpawnAndEquipWeaponInCombat: already equipped on %s, skip."), *GetName());
+		GSGAS_LOG(LogGSGAS, Warning, TEXT("SpawnAndEquipWeapon: already equipped on %s, skip."), *GetName());
 		return;
 	}
 
@@ -133,23 +138,47 @@ void AGSGASCharacterBase::SpawnAndEquipWeaponInCombat(TSubclassOf<AGSGASWeapon> 
 	AGSGASWeapon* Weapon = GetWorld()->SpawnActor<AGSGASWeapon>(WeaponClass, GetActorTransform(), SpawnParams);
 	if (!Weapon)
 	{
-		GSGAS_LOG(LogGSGAS, Warning, TEXT("SpawnAndEquipWeaponInCombat: SpawnActor failed on %s."), *GetName());
+		GSGAS_LOG(LogGSGAS, Warning, TEXT("SpawnAndEquipWeapon: SpawnActor failed on %s."), *GetName());
 		return;
 	}
 
 	// UnEquipSocket(등)에 붙이고 EquippedWeapon 설정
 	Weapon->EquipItem();
 
-	// 몽타주 없이 즉시 손(EquipSocket)으로 이동
-	Weapon->SwitchSocket(true);
-
-	// 전투 상태 플래그 + GAS 태그 적용
-	SetCombatEnabled(true);
-	ASC->AddLooseGameplayTag(GSGASGameplayTags::Character_State_CombatEnabled);
-	if (Weapon->GetWeaponTypeTag().IsValid())
+	if (bEnterCombat)
 	{
-		ASC->AddLooseGameplayTag(Weapon->GetWeaponTypeTag());
+		// 몽타주 없이 즉시 손(EquipSocket)으로 이동
+		Weapon->SwitchSocket(true);
+
+		// 전투 상태 플래그 + GAS 태그 적용
+		SetCombatEnabled(true);
+		ASC->AddLooseGameplayTag(GSGASGameplayTags::Character_State_CombatEnabled);
+		if (Weapon->GetWeaponTypeTag().IsValid())
+		{
+			ASC->AddLooseGameplayTag(Weapon->GetWeaponTypeTag());
+		}
 	}
 
-	GSGAS_LOG(LogGSGAS, Log, TEXT("SpawnAndEquipWeaponInCombat: weapon equipped and combat enabled on %s."), *GetName());
+	GSGAS_LOG(LogGSGAS, Log, TEXT("SpawnAndEquipWeapon: equipped on %s (combat=%d)."), *GetName(), bEnterCombat ? 1 : 0);
+}
+
+void AGSGASCharacterBase::DestroyEquippedWeapon()
+{
+	if (EquippedWeapon)
+	{
+		// 전투 중 무기 타입 태그가 붙어 있었다면 제거
+		if (ASC && EquippedWeapon->GetWeaponTypeTag().IsValid())
+		{
+			ASC->RemoveLooseGameplayTag(EquippedWeapon->GetWeaponTypeTag());
+		}
+
+		EquippedWeapon->Destroy();
+		EquippedWeapon = nullptr;
+	}
+
+	SetCombatEnabled(false);
+	if (ASC)
+	{
+		ASC->RemoveLooseGameplayTag(GSGASGameplayTags::Character_State_CombatEnabled);
+	}
 }

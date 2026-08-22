@@ -109,21 +109,24 @@ void AGSGASCharacterEnemy::PossessedBy(AController* NewController)
 		AttributeSet->OnOutOfHealth.AddUObject(this, &AGSGASCharacterEnemy::OnOutOfHealth);
 	}
 
-	if (InitStatEffectClass)
+	for (const auto& InitEffect : InitStatEffectClass)
 	{
-		FGameplayEffectContextHandle ContextHandle = ASC->MakeEffectContext();
-		ContextHandle.AddSourceObject(this);
-		FGameplayEffectSpecHandle SpecHandle = ASC->MakeOutgoingSpec(InitStatEffectClass, 1.f, ContextHandle);
-		if (SpecHandle.IsValid())
+		if (InitEffect)
 		{
-			ASC->ApplyGameplayEffectSpecToSelf(*SpecHandle.Data.Get());
-		}
-		else
-		{
-			GSGAS_LOG(LogGSGAS, Warning, TEXT("InitStatEffectClass SpecHandle invalid on %s."), *GetName());
+			FGameplayEffectContextHandle ContextHandle = ASC->MakeEffectContext();
+			ContextHandle.AddSourceObject(this);
+			FGameplayEffectSpecHandle SpecHandle = ASC->MakeOutgoingSpec(InitEffect, 1.f, ContextHandle);
+			if (SpecHandle.IsValid())
+			{
+				ASC->ApplyGameplayEffectSpecToSelf(*SpecHandle.Data.Get());
+			}
+			else
+			{
+				GSGAS_LOG(LogGSGAS, Warning, TEXT("InitStatEffectClass SpecHandle invalid on %s."), *GetName());
+			}
 		}
 	}
-
+	
 	for (const TSubclassOf<UGameplayAbility>& StartAbility: StartAbilities)
 	{
 		if (StartAbility)

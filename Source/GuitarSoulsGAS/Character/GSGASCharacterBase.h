@@ -45,6 +45,13 @@ protected:
 	// PossessedBy에서 ASC->InitAbilityActorInfo 완료 후 호출해야 함
 	void SpawnAndEquipWeaponInCombat(TSubclassOf<class AGSGASWeapon> WeaponClass);
 
+	// 무기 스폰 + 장착. bEnterCombat: true=손 소켓+전투 태그(전투 상태), false=등 소켓만(비전투).
+	// 레벨 전환 복원에서 저장된 전투/비전투 상태를 그대로 재현하기 위해 사용.
+	void SpawnAndEquipWeapon(TSubclassOf<class AGSGASWeapon> WeaponClass, bool bEnterCombat);
+
+	// 현재 장착 무기를 파괴하고 전투 상태/관련 루즈 태그를 정리. 복원 전 이중 스폰 방지용.
+	void DestroyEquippedWeapon();
+
 //GAS Section
 protected:
 	UPROPERTY()

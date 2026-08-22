@@ -23,6 +23,10 @@
 #include "Attribute/GSAttributeSet.h"
 #include "Kismet/KismetSystemLibrary.h"
 #include "Engine/Engine.h"
+#include "Item/GSGASWeapon.h"
+#include "Save/GSGASPlayerSaveData.h"
+#include "Save/GSGASPersistenceSubsystem.h"
+#include "Engine/GameInstance.h"
 
 AGSGASCharacterPlayer::AGSGASCharacterPlayer()
 {
@@ -153,9 +157,115 @@ void AGSGASCharacterPlayer::PossessedBy(AController* NewController)
 			}
 		}
 
+		// 레벨 전환 복원 — 저장 데이터가 있으면 InitEffects 초기값을 덮어쓴다.
+		// 복원 성공했을 때만 Clear하여 실패 시 데이터가 유실되지 않도록 한다.
+		if (UGameInstance* GI = GetGameInstance())
+		{
+			if (UGSGASPersistenceSubsystem* Persistence = GI->GetSubsystem<UGSGASPersistenceSubsystem>())
+			{
+				FGSGASPlayerSaveData SaveData;
+				if (Persistence->TryGetSaveData(SaveData) && RestoreFromSaveData(SaveData))
+				{
+					Persistence->ClearSaveData();
+				}
+			}
+		}
+
 		// APlayerController* PlayerController = CastChecked<APlayerController>(NewController);
 		// PlayerController->ConsoleCommand(TEXT("showdebug abilitysystem"));
 	}
+}
+
+bool AGSGASCharacterPlayer::CaptureSaveData(FGSGASPlayerSaveData& OutData) const
+{
+	const AGSGASPlayerState* GASPS = GetPlayerState<AGSGASPlayerState>();
+	if (!GASPS)
+	{
+		GSGAS_LOG(LogGSGAS, Warning, TEXT("CaptureSaveData: PlayerState is null."));
+		return false;
+	}
+
+	UAbilitySystemComponent* CaptureASC = GASPS->GetAbilitySystemComponent();
+	if (!CaptureASC)
+	{
+		GSGAS_LOG(LogGSGAS, Warning, TEXT("CaptureSaveData: ASC is null."));
+		return false;
+	}
+
+	// 소모 리소스: 현재값(모디파이어 반영)을 저장
+	OutData.Health = CaptureASC->GetNumericAttribute(UGSAttributeSet::GetHealthAttribute());
+	OutData.Stamina = CaptureASC->GetNumericAttribute(UGSAttributeSet::GetStaminaAttribute());
+	OutData.PotionCount = CaptureASC->GetNumericAttribute(UGSAttributeSet::GetPotionCountAttribute());
+
+	// 영구 스탯: base값을 저장 — 광폭화 등 transient 버프가 base로 영구화되는 것을 방지
+	OutData.MaxHealth = CaptureASC->GetNumericAttributeBase(UGSAttributeSet::GetMaxHealthAttribute());
+	OutData.MaxStamina = CaptureASC->GetNumericAttributeBase(UGSAttributeSet::GetMaxStaminaAttribute());
+	OutData.MaxPotionCount = CaptureASC->GetNumericAttributeBase(UGSAttributeSet::GetMaxPotionCountAttribute());
+	OutData.AttackPower = CaptureASC->GetNumericAttributeBase(UGSAttributeSet::GetAttackPowerAttribute());
+	OutData.Defense = CaptureASC->GetNumericAttributeBase(UGSAttributeSet::GetDefenseAttribute());
+
+	// 무기 상태
+	if (AGSGASWeapon* Weapon = GetEquippedWeapon())
+	{
+		OutData.EquippedWeaponClass = Weapon->GetClass();
+	}
+	OutData.bCombatEnabled = IsCombatEnabled();
+
+	GSGAS_LOG(LogGSGAS, Log, TEXT("CaptureSaveData: HP=%.1f Stamina=%.1f Potion=%.1f Weapon=%s Combat=%d"),
+		OutData.Health, OutData.Stamina, OutData.PotionCount,
+		*GetNameSafe(OutData.EquippedWeaponClass), OutData.bCombatEnabled ? 1 : 0);
+	return true;
+}
+
+bool AGSGASCharacterPlayer::RestoreFromSaveData(const FGSGASPlayerSaveData& Data)
+{
+	const AGSGASPlayerState* GASPS = GetPlayerState<AGSGASPlayerState>();
+	if (!GASPS)
+	{
+		GSGAS_LOG(LogGSGAS, Warning, TEXT("RestoreFromSaveData: PlayerState is null."));
+		return false;
+	}
+
+	UAbilitySystemComponent* RestoreASC = GASPS->GetAbilitySystemComponent();
+	if (!RestoreASC)
+	{
+		GSGAS_LOG(LogGSGAS, Warning, TEXT("RestoreFromSaveData: ASC is null."));
+		return false;
+	}
+
+	// 1. 기존 무기 정리 (이중 스폰 방지 — 보통 새 possess 시 무기 없음, 방어적)
+	DestroyEquippedWeapon();
+
+	// 2. base 스탯 먼저 (현재값 클램프가 Max를 참조하므로 순서 중요)
+	RestoreASC->SetNumericAttributeBase(UGSAttributeSet::GetMaxHealthAttribute(), Data.MaxHealth);
+	RestoreASC->SetNumericAttributeBase(UGSAttributeSet::GetMaxStaminaAttribute(), Data.MaxStamina);
+	RestoreASC->SetNumericAttributeBase(UGSAttributeSet::GetMaxPotionCountAttribute(), Data.MaxPotionCount);
+	RestoreASC->SetNumericAttributeBase(UGSAttributeSet::GetAttackPowerAttribute(), Data.AttackPower);
+	RestoreASC->SetNumericAttributeBase(UGSAttributeSet::GetDefenseAttribute(), Data.Defense);
+
+	// 3. 무기 스폰/장착 — 저장된 전투(손)/비전투(등) 상태 그대로 복원
+	if (Data.EquippedWeaponClass)
+	{
+		SpawnAndEquipWeapon(Data.EquippedWeaponClass, Data.bCombatEnabled);
+	}
+
+	// 4. 현재 리소스는 최종 Max 확정 후 클램프하여 복원
+	const float FinalMaxHealth = RestoreASC->GetNumericAttribute(UGSAttributeSet::GetMaxHealthAttribute());
+	const float FinalMaxStamina = RestoreASC->GetNumericAttribute(UGSAttributeSet::GetMaxStaminaAttribute());
+	const float FinalMaxPotion = RestoreASC->GetNumericAttribute(UGSAttributeSet::GetMaxPotionCountAttribute());
+
+	const float RestoredHealth = FMath::Clamp(Data.Health, 0.f, FinalMaxHealth);
+	const float RestoredStamina = FMath::Clamp(Data.Stamina, 0.f, FinalMaxStamina);
+	const float RestoredPotion = FMath::Clamp(Data.PotionCount, 0.f, FinalMaxPotion);
+
+	RestoreASC->SetNumericAttributeBase(UGSAttributeSet::GetHealthAttribute(), RestoredHealth);
+	RestoreASC->SetNumericAttributeBase(UGSAttributeSet::GetStaminaAttribute(), RestoredStamina);
+	RestoreASC->SetNumericAttributeBase(UGSAttributeSet::GetPotionCountAttribute(), RestoredPotion);
+
+	GSGAS_LOG(LogGSGAS, Log, TEXT("RestoreFromSaveData: HP=%.1f/%.1f Stamina=%.1f Potion=%.1f Weapon=%s Combat=%d"),
+		RestoredHealth, FinalMaxHealth, RestoredStamina, RestoredPotion,
+		*GetNameSafe(Data.EquippedWeaponClass), Data.bCombatEnabled ? 1 : 0);
+	return true;
 }
 
 FRotator AGSGASCharacterPlayer::GetComboFacingRotation() const
@@ -318,7 +428,7 @@ void AGSGASCharacterPlayer::Look(const FInputActionValue& Value)
 	if (Controller != nullptr)
 	{
 		AddControllerYawInput(LookAxisVector.X);
-		AddControllerPitchInput(LookAxisVector.Y);
+		AddControllerPitchInput(LookAxisVector.Y * (-1));
 	}
 }
 
@@ -327,7 +437,7 @@ void AGSGASCharacterPlayer::OnInteractSphereBeginOverlap(UPrimitiveComponent* Ov
 {
 	if (!OtherActor) return;
 
-	if (Cast<IGSGASInteractInterface>(OtherActor))
+	if (OtherActor->Implements<UGSGASInteractInterface>())
 	{
 		if (PlayerHUDWidget)
 		{
@@ -342,7 +452,7 @@ void AGSGASCharacterPlayer::OnInteractSphereEndOverlap(UPrimitiveComponent* Over
 {
 	if (!OtherActor) return;
 
-	if (Cast<IGSGASInteractInterface>(OtherActor))
+	if (OtherActor->Implements<UGSGASInteractInterface>())
 	{
 		if (PlayerHUDWidget)
 		{

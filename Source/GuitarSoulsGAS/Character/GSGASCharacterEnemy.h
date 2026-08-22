@@ -61,8 +61,8 @@ protected:
 	TObjectPtr<class UWidgetComponent> HpBarWidgetComponent;
  
 	// 초기 스탯 설정 GE (BP에서 지정)
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "GAS")
-	TSubclassOf<class UGameplayEffect> InitStatEffectClass;
+	UPROPERTY(EditAnywhere, Category = "GAS")
+	TArray<TSubclassOf<class UGameplayEffect>> InitStatEffectClass;
 
 	// 시작 시 자동 장착할 무기 (지정 시 PossessedBy에서 즉시 전투 모드 진입)
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Weapon")
