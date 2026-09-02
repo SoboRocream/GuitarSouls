@@ -6,6 +6,9 @@
 #include "Attribute/GSAttributeSet.h"
 #include "UI/GSGASBarWidget.h"
 #include "UI/GSGASPotionWidget.h"
+#include "Components/TextBlock.h"
+#include "Engine/World.h"
+#include "TimerManager.h"
 
 void UGSGASPlayerHUDWidget::SetAbilitySystemComponent(AActor* InOwner)
 {
@@ -47,6 +50,48 @@ void UGSGASPlayerHUDWidget::SetAbilitySystemComponent(AActor* InOwner)
     	{
     		PotionWidget->SetPotionQuantity(FMath::FloorToInt(AttributeSet->GetPotionCount()));
     	}
+}
+
+void UGSGASPlayerHUDWidget::NativeConstruct()
+{
+	Super::NativeConstruct();
+
+	if (InteractPromptText)
+	{
+		InteractPromptText->SetVisibility(ESlateVisibility::Collapsed);
+	}
+}
+
+void UGSGASPlayerHUDWidget::ShowPromptText(const FText& InText, float Duration)
+{
+	// BindWidgetOptional — WBP에 TextBlock을 두지 않았다면 조용히 무시한다.
+	if (!InteractPromptText) return;
+
+	InteractPromptText->SetText(InText);
+	InteractPromptText->SetVisibility(ESlateVisibility::HitTestInvisible);
+
+	if (UWorld* World = GetWorld())
+	{
+		// 이전 자동 숨김 예약이 남아있으면 취소 — 새 프롬프트가 조기에 지워지는 것 방지
+		World->GetTimerManager().ClearTimer(PromptTimerHandle);
+
+		if (Duration > 0.f)
+		{
+			World->GetTimerManager().SetTimer(PromptTimerHandle, this, &UGSGASPlayerHUDWidget::HidePromptText, Duration, false);
+		}
+	}
+}
+
+void UGSGASPlayerHUDWidget::HidePromptText()
+{
+	if (!InteractPromptText) return;
+
+	if (UWorld* World = GetWorld())
+	{
+		World->GetTimerManager().ClearTimer(PromptTimerHandle);
+	}
+
+	InteractPromptText->SetVisibility(ESlateVisibility::Collapsed);
 }
 
 void UGSGASPlayerHUDWidget::OnHealthChanged(const FOnAttributeChangeData& Data)

@@ -26,4 +26,9 @@ class GUITARSOULSGAS_API IGSGASInteractInterface
 public:
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "Interact")
 	void Interact(AActor* InteractionActor);
+
+	// 상호작용 범위에 들어왔을 때 HUD에 띄울 문구.
+	// 기본 반환값은 미설정을 눈에 띄게 하기 위한 자리표시자 — 구현체에서 반드시 지정할 것.
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "Interact")
+	FText GetInteractPromptText() const;
 };

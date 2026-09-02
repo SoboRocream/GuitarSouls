@@ -25,5 +25,10 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = Interact)
 	float InteractRadius = 100.f;
 
+	// 상호작용 탐지 구체를 화면에 그린다. Shipping이 아닌 빌드에서는 켜두면 실제로 보이므로
+	// 전시/시연 빌드에서는 반드시 false 유지.
+	UPROPERTY(EditDefaultsOnly, Category = Interact)
+	bool bDrawDebug = false;
+
 	
 };

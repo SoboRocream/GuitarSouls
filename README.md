@@ -2,7 +2,7 @@
 
 **Unreal Engine 5.6 · C++ · Gameplay Ability System 기반 소울라이크 액션 RPG**
 
-다크 소울 3 스타일의 싱글플레이 소울라이크 액션 RPG로, 컴포넌트 기반 설계에서 **GAS 기반 모듈형 설계**로의 아키텍처 개선을 실증하는 캡스톤 졸업 프로젝트입니다.
+다크 소울 3 스타일의 싱글플레이 소울라이크 액션 RPG를 만든 캡스톤 졸업 프로젝트입니다. 컴포넌트 기반 설계를 **GAS 기반 모듈형 설계**로 바꾸면 아키텍처가 어떻게 개선되는지 실증합니다.
 
 <br>
 
@@ -10,29 +10,29 @@
 
 ### 📍 무엇을 만들었나요?
 
-다크 소울 3의 튜토리얼 구간을 목표로 한 싱글플레이 소울라이크 액션 RPG의 버티컬 슬라이스입니다. 근접 전투, 락온, 회피, 스태미너 관리, 적·보스 AI, 페이즈 전환까지 하나의 플레이 가능한 세그먼트로 완성했습니다.
+싱글플레이 소울라이크 액션 RPG의 버티컬 슬라이스로, 목표 범위는 다크 소울 3의 튜토리얼 구간입니다. 근접 전투, 락온, 회피, 스태미너 관리, 적·보스 AI, 페이즈 전환까지 하나의 플레이 가능한 세그먼트로 완성했습니다.
 
 <br>
 
 ### 📍 왜 GAS인가요?
 
-기존 컴포넌트 기반 전투 설계는 캐릭터·상태가 늘수록 클래스 간 상호 참조가 O(N²)로 증가하고 클래스가 비대해집니다. 본 프로젝트는 Unreal의 Gameplay Ability System을 도입해 이 문제를 구조적으로 해소하고, 그 개선 효과를 실제 코드로 실증하는 것을 핵심 논지로 삼습니다.
+기존 컴포넌트 기반 전투 설계는 캐릭터·상태가 늘수록 클래스 간 상호 참조가 O(N²)로 증가하고 클래스가 비대해집니다. 이 프로젝트에서는 Unreal의 Gameplay Ability System을 도입해 이 문제를 구조적으로 해소합니다. 개선 효과를 실제 코드로 실증하는 것이 핵심 논지입니다.
 
 <br>
 
 ### 📍 무엇을 개선했나요?
 
 - **데이터 · 로직 · 표현의 분리** — Attribute(데이터), Gameplay Ability(로직), Montage/Widget(표현)을 각 계층으로 분리
-- **태그 기반 상태 관리** — 계층적 Gameplay Tag로 상태를 표현, Enum·Boolean 플래그를 대체
+- **태그 기반 상태 관리** — 계층적 Gameplay Tag로 상태를 표현해 Enum·Boolean 플래그를 대체
 - **데이터 주도 콘텐츠 설계** — 무기·데미지·공격 패턴을 DataAsset과 SetByCaller GE로 구성
 
 <br>
 
 ### 📍 프로젝트 목표
 
-**레거시를 답습하지 않고, 참고로만 삼아 재설계한다 🔥**
+**레거시를 답습하지 않고 참고로만 삼아 재설계한다 🔥**
 
-- 레거시 `GuitarSouls` 모듈은 참조 대상으로만 유지하고, 모든 신규 로직은 `GuitarSoulsGAS` 모듈에 작성
+- 레거시 `GuitarSouls` 모듈은 참조 대상으로만 유지하고 모든 신규 로직은 `GuitarSoulsGAS` 모듈에 작성
 - 기획 변경이 잦은 값은 Blueprint로, 런타임 로직은 C++로 경계를 명확히 분리
 - 확장성 우선 — '지금 단순'보다 '나중에 바꾸기 쉬운' 구조를 선택
 
@@ -84,7 +84,7 @@ ACharacter
 ### 📍 전투
 
 - **약공 / 강공 콤보** — 태그당 몽타주 1개, 섹션 분기 방식. `Character.State.ComboWindow` 태그 구간에서 다음 입력을 수락한 뒤 `MontageJumpToSection`으로 연결
-- **무기 판정** — `AnimNotifyState`는 ASC 태그 add/remove만 수행하고, GA가 태그 이벤트를 감지해 `WeaponCollisionComponent`의 소켓 기반 SphereTrace를 On/Off
+- **무기 판정** — `AnimNotifyState`는 ASC 태그 add/remove만 수행. GA가 태그 이벤트를 감지해 `WeaponCollisionComponent`의 소켓 기반 SphereTrace를 On/Off
 - **데미지 파이프라인** — `GE_GSDamage`에 `Data.Damage`를 SetByCaller로 주입 → `PostGameplayEffectExecute`에서 Health 차감 → 생존 시 `Character.Action.HitReaction` 이벤트 발송
 - **4방향 히트리액션** — 공격자–피격자 상대 Yaw로 Front / Back / Left / Right 섹션 결정
 
@@ -94,7 +94,7 @@ ACharacter
 
 - **행동 선택** — Blackboard 플래그 대신 Gameplay Tag(`AI.Behavior.*`)와 GAS 어트리뷰트 기반 BTService · BTDecorator로 판단
 - **공격 실행** — `BTTaskNode_GASPerformAttack`이 `SendGameplayEventToActor`로 GA를 발동(`TriggerEventData` 전달). 보스는 Shuffle Bag 방식 패턴 태스크로 모든 패턴 1회를 보장하며 랜덤 공격
-- **페이즈 전환** — HP 임계값 도달 시 `AttributeSet`이 loose 태그를 부여, `GA_BossPhaseTransition`이 1회 발동. 전환 중 `Character.State.Immune`으로 데미지 면역
+- **페이즈 전환** — HP 임계값 도달 시 `AttributeSet`이 loose 태그를 부여하면 `GA_BossPhaseTransition`이 1회 발동. 전환 중 `Character.State.Immune`으로 데미지 면역
 
 <br>
 

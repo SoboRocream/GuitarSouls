@@ -47,6 +47,8 @@ void UGA_Interact::ActivateAbility(const FGameplayAbilitySpecHandle Handle, cons
 	TArray<AActor*> IgnoreActors;
 	IgnoreActors.Add(AvatarActor);
 
+	const EDrawDebugTrace::Type DebugType = bDrawDebug ? EDrawDebugTrace::ForDuration : EDrawDebugTrace::None;
+
 	TArray<FHitResult> OutHits;
 	UKismetSystemLibrary::SphereTraceMultiForObjects(
 		AvatarActor,
@@ -56,7 +58,7 @@ void UGA_Interact::ActivateAbility(const FGameplayAbilitySpecHandle Handle, cons
 		ObjectTypes,
 		false,
 		IgnoreActors,
-		EDrawDebugTrace::ForDuration,
+		DebugType,
 		OutHits,
 		true);
 

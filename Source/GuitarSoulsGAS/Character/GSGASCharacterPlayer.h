@@ -25,10 +25,19 @@ public:
 	bool CaptureSaveData(FGSGASPlayerSaveData& OutData) const;
 
 	// 저장된 상태를 현재 플레이어에 복원. 실패 시 false(호출측에서 저장 데이터를 유지하도록).
-	bool RestoreFromSaveData(const FGSGASPlayerSaveData& Data);
+	// bFullHeal=true면 저장된 HP/스태미나/포션 대신 최대치로 채운다(사망 후 부활 경로).
+	bool RestoreFromSaveData(const FGSGASPlayerSaveData& Data, bool bFullHeal = false);
 
 	FORCEINLINE float GetInteractRadius() const { return InteractRadius; }
 	FORCEINLINE FVector2D GetLastMovementInput() const { return LastMovementInput; }
+
+	// HUD 프롬프트 래퍼 — BP(튜토리얼 트리거 등)가 위젯을 직접 알지 않아도 되도록 캐릭터가 중계한다.
+	// Duration > 0 이면 그 시간 뒤 자동으로 사라진다.
+	UFUNCTION(BlueprintCallable, Category = "UI|Prompt")
+	void ShowPromptText(const FText& InText, float Duration = 0.f);
+
+	UFUNCTION(BlueprintCallable, Category = "UI|Prompt")
+	void HidePromptText();
 
 	virtual FRotator GetComboFacingRotation() const override;
 
@@ -130,6 +139,21 @@ protected:
 protected:
 	UPROPERTY(EditAnywhere, Category = GAS)
 	TArray<TSubclassOf<class UGameplayEffect>> InitEffects;
+
+	// Save Fallback Section
+protected:
+	// 저장 데이터 없이 전투 맵에서 시작했을 때의 안전망 무기.
+	// 무기가 없으면 GA_LightAttack/HeavyAttack이 활성화되지 않아 진행 불가가 되므로 최후 방어선으로 둔다.
+	// 비워두면(None) 비활성.
+	UPROPERTY(EditAnywhere, Category = "Save|Fallback")
+	TSubclassOf<class AGSGASWeapon> FallbackWeaponClass;
+
+	// 이 레벨에서는 폴백 무기를 장착하지 않는다. 무기를 직접 줍는 시작 맵을 지정.
+	UPROPERTY(EditAnywhere, Category = "Save|Fallback")
+	FName NoFallbackLevelName = TEXT("map_dungeon_level_2_entrance");
+
+	// 복원도 픽업도 없는 상태면 폴백 무기를 장착한다(위 조건 충족 시).
+	void EquipFallbackWeaponIfNeeded();
 	
 	// UI Section
 protected:

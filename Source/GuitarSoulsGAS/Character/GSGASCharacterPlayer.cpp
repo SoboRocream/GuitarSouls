@@ -22,6 +22,7 @@
 #include "UI/GSGASGameOverWidget.h"
 #include "Attribute/GSAttributeSet.h"
 #include "Kismet/KismetSystemLibrary.h"
+#include "Kismet/GameplayStatics.h"
 #include "Engine/Engine.h"
 #include "Item/GSGASWeapon.h"
 #include "Save/GSGASPlayerSaveData.h"
@@ -157,18 +158,28 @@ void AGSGASCharacterPlayer::PossessedBy(AController* NewController)
 			}
 		}
 
-		// 레벨 전환 복원 — 저장 데이터가 있으면 InitEffects 초기값을 덮어쓴다.
-		// 복원 성공했을 때만 Clear하여 실패 시 데이터가 유실되지 않도록 한다.
+		// 체크포인트 복원 — 저장 데이터가 있으면 InitEffects 초기값을 덮어쓴다.
+		// 여기서 Clear하지 않는다. 스냅샷을 남겨야 사망 후 같은 맵을 재로드해도 무기/스탯이 돌아온다.
+		// 사망 재시작 경로(MarkDeathRestart)면 리소스를 가득 채워 부활시킨다.
+		bool bRestored = false;
 		if (UGameInstance* GI = GetGameInstance())
 		{
 			if (UGSGASPersistenceSubsystem* Persistence = GI->GetSubsystem<UGSGASPersistenceSubsystem>())
 			{
+				const bool bFullHeal = Persistence->ConsumeDeathRestart();
+
 				FGSGASPlayerSaveData SaveData;
-				if (Persistence->TryGetSaveData(SaveData) && RestoreFromSaveData(SaveData))
+				if (Persistence->TryGetSaveData(SaveData))
 				{
-					Persistence->ClearSaveData();
+					bRestored = RestoreFromSaveData(SaveData, bFullHeal);
 				}
 			}
+		}
+
+		// 복원할 스냅샷이 없는 경우의 안전망 — 전투 맵에서 맨손으로 시작하는 진행 불가 방지
+		if (!bRestored)
+		{
+			EquipFallbackWeaponIfNeeded();
 		}
 
 		// APlayerController* PlayerController = CastChecked<APlayerController>(NewController);
@@ -217,7 +228,7 @@ bool AGSGASCharacterPlayer::CaptureSaveData(FGSGASPlayerSaveData& OutData) const
 	return true;
 }
 
-bool AGSGASCharacterPlayer::RestoreFromSaveData(const FGSGASPlayerSaveData& Data)
+bool AGSGASCharacterPlayer::RestoreFromSaveData(const FGSGASPlayerSaveData& Data, bool bFullHeal)
 {
 	const AGSGASPlayerState* GASPS = GetPlayerState<AGSGASPlayerState>();
 	if (!GASPS)
@@ -250,22 +261,45 @@ bool AGSGASCharacterPlayer::RestoreFromSaveData(const FGSGASPlayerSaveData& Data
 	}
 
 	// 4. 현재 리소스는 최종 Max 확정 후 클램프하여 복원
+	//    bFullHeal(사망 부활)이면 저장값 대신 최대치로 채운다 —
+	//    체크포인트가 저HP로 저장돼 있으면 부활 직후 다시 죽기 때문.
 	const float FinalMaxHealth = RestoreASC->GetNumericAttribute(UGSAttributeSet::GetMaxHealthAttribute());
 	const float FinalMaxStamina = RestoreASC->GetNumericAttribute(UGSAttributeSet::GetMaxStaminaAttribute());
 	const float FinalMaxPotion = RestoreASC->GetNumericAttribute(UGSAttributeSet::GetMaxPotionCountAttribute());
 
-	const float RestoredHealth = FMath::Clamp(Data.Health, 0.f, FinalMaxHealth);
-	const float RestoredStamina = FMath::Clamp(Data.Stamina, 0.f, FinalMaxStamina);
-	const float RestoredPotion = FMath::Clamp(Data.PotionCount, 0.f, FinalMaxPotion);
+	const float RestoredHealth = bFullHeal ? FinalMaxHealth : FMath::Clamp(Data.Health, 0.f, FinalMaxHealth);
+	const float RestoredStamina = bFullHeal ? FinalMaxStamina : FMath::Clamp(Data.Stamina, 0.f, FinalMaxStamina);
+	const float RestoredPotion = bFullHeal ? FinalMaxPotion : FMath::Clamp(Data.PotionCount, 0.f, FinalMaxPotion);
 
 	RestoreASC->SetNumericAttributeBase(UGSAttributeSet::GetHealthAttribute(), RestoredHealth);
 	RestoreASC->SetNumericAttributeBase(UGSAttributeSet::GetStaminaAttribute(), RestoredStamina);
 	RestoreASC->SetNumericAttributeBase(UGSAttributeSet::GetPotionCountAttribute(), RestoredPotion);
 
-	GSGAS_LOG(LogGSGAS, Log, TEXT("RestoreFromSaveData: HP=%.1f/%.1f Stamina=%.1f Potion=%.1f Weapon=%s Combat=%d"),
+	GSGAS_LOG(LogGSGAS, Log, TEXT("RestoreFromSaveData: HP=%.1f/%.1f Stamina=%.1f Potion=%.1f Weapon=%s Combat=%d FullHeal=%d"),
 		RestoredHealth, FinalMaxHealth, RestoredStamina, RestoredPotion,
-		*GetNameSafe(Data.EquippedWeaponClass), Data.bCombatEnabled ? 1 : 0);
+		*GetNameSafe(Data.EquippedWeaponClass), Data.bCombatEnabled ? 1 : 0, bFullHeal ? 1 : 0);
 	return true;
+}
+
+void AGSGASCharacterPlayer::EquipFallbackWeaponIfNeeded()
+{
+	if (!FallbackWeaponClass || GetEquippedWeapon())
+	{
+		return;
+	}
+
+	// 무기를 직접 줍는 시작 맵에서는 발동시키지 않는다.
+	const FString CurrentLevelName = UGameplayStatics::GetCurrentLevelName(this, true);
+	if (!NoFallbackLevelName.IsNone() && CurrentLevelName == NoFallbackLevelName.ToString())
+	{
+		return;
+	}
+
+	GSGAS_LOG(LogGSGAS, Warning, TEXT("EquipFallbackWeaponIfNeeded: no save data in %s. Equipping %s."),
+		*CurrentLevelName, *GetNameSafe(FallbackWeaponClass));
+
+	// 비전투(등 소켓) 상태로 지급 — 시작 자세는 시작 맵과 동일하게 유지
+	SpawnAndEquipWeapon(FallbackWeaponClass, false);
 }
 
 FRotator AGSGASCharacterPlayer::GetComboFacingRotation() const
@@ -439,10 +473,8 @@ void AGSGASCharacterPlayer::OnInteractSphereBeginOverlap(UPrimitiveComponent* Ov
 
 	if (OtherActor->Implements<UGSGASInteractInterface>())
 	{
-		if (PlayerHUDWidget)
-		{
-			//PlayerHUDWidget->ShowInteractUI(FText::FromString(TEXT("[E] 상호작용")));
-		}
+		// BP 구현체도 잡으려면 Cast가 아니라 Execute_ 패턴이어야 한다.
+		ShowPromptText(IGSGASInteractInterface::Execute_GetInteractPromptText(OtherActor));
 		GSGAS_LOG(LogGSGAS, Log, TEXT("Interact target entered: %s"), *OtherActor->GetName());
 	}
 }
@@ -454,11 +486,26 @@ void AGSGASCharacterPlayer::OnInteractSphereEndOverlap(UPrimitiveComponent* Over
 
 	if (OtherActor->Implements<UGSGASInteractInterface>())
 	{
-		if (PlayerHUDWidget)
-		{
-			//PlayerHUDWidget->HideInteractUI();
-		}
+		// NOTE: 상호작용 대상이 서로 겹쳐 있으면 한쪽에서 나올 때 프롬프트가 지워진다.
+		//       현재 전시 레벨에는 대상이 붙어있지 않아 문제되지 않음.
+		HidePromptText();
 		GSGAS_LOG(LogGSGAS, Log, TEXT("Interact target exited: %s"), *OtherActor->GetName());
+	}
+}
+
+void AGSGASCharacterPlayer::ShowPromptText(const FText& InText, float Duration)
+{
+	if (PlayerHUDWidget)
+	{
+		PlayerHUDWidget->ShowPromptText(InText, Duration);
+	}
+}
+
+void AGSGASCharacterPlayer::HidePromptText()
+{
+	if (PlayerHUDWidget)
+	{
+		PlayerHUDWidget->HidePromptText();
 	}
 }
 
@@ -469,6 +516,16 @@ void AGSGASCharacterPlayer::OnOutOfHealth()
 
 void AGSGASCharacterPlayer::OnDeath()
 {
+	// 사망 재시작 표식 — 다음 복원에서 체크포인트를 "가득 찬 상태"로 부활시키기 위함.
+	// 재시작 UI 경로와 무관하게 동작하도록 사망 시점에 세운다.
+	if (UGameInstance* GI = GetGameInstance())
+	{
+		if (UGSGASPersistenceSubsystem* Persistence = GI->GetSubsystem<UGSGASPersistenceSubsystem>())
+		{
+			Persistence->MarkDeathRestart();
+		}
+	}
+
 	// 입력 차단
 	if (APlayerController* PlayerController = Cast<APlayerController>(GetController()))
 	{

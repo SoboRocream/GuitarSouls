@@ -3,18 +3,18 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "GameFramework/Actor.h"
 #include "GameplayTagContainer.h"
-#include "Interface/GSGASInteractInterface.h"
+#include "Interactable/GSGASInteractableActor.h"
 #include "NiagaraComponent.h"
 #include "GSGASWeapon.generated.h"
 
+// 프롬프트 문구(InteractPromptText)는 AGSGASInteractableActor에서 상속받는다.
 UCLASS()
-class GUITARSOULSGAS_API AGSGASWeapon : public AActor, public IGSGASInteractInterface
+class GUITARSOULSGAS_API AGSGASWeapon : public AGSGASInteractableActor
 {
 	GENERATED_BODY()
-	
-public:	
+
+public:
 	AGSGASWeapon();
 
 	virtual void Interact_Implementation(AActor* InteractionActor) override;

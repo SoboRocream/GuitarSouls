@@ -26,5 +26,19 @@ void UGSGASPersistenceSubsystem::ClearSaveData()
 {
 	SavedData = FGSGASPlayerSaveData();
 	bHasSaveData = false;
+	bPendingDeathRestart = false;
 	GSGAS_LOG(LogGSGAS, Log, TEXT("Player save data cleared."));
+}
+
+void UGSGASPersistenceSubsystem::MarkDeathRestart()
+{
+	bPendingDeathRestart = true;
+	GSGAS_LOG(LogGSGAS, Log, TEXT("Death restart marked."));
+}
+
+bool UGSGASPersistenceSubsystem::ConsumeDeathRestart()
+{
+	const bool bWasPending = bPendingDeathRestart;
+	bPendingDeathRestart = false;
+	return bWasPending;
 }
