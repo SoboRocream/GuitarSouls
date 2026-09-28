@@ -31,6 +31,9 @@ protected:
 	// WBP의 Visibility 기본값과 무관하게 프롬프트가 숨겨진 상태로 시작하도록 보장
 	virtual void NativeConstruct() override;
 
+	// 타임어택 경과 시간 갱신
+	virtual void NativeTick(const FGeometry& MyGeometry, float InDeltaTime) override;
+
 	UPROPERTY(meta = (BindWidget), BlueprintReadWrite)
 	TObjectPtr<class UGSGASBarWidget> HpBarWidget;
 
@@ -42,6 +45,10 @@ protected:
 
 	UPROPERTY(meta = (BindWidgetOptional), BlueprintReadWrite)
 	TObjectPtr<class UTextBlock> InteractPromptText;
+
+	// 런이 활성(진행 중/정지 후)일 때만 표시. StartRun 없이 맵을 직접 열면 숨겨진다.
+	UPROPERTY(meta = (BindWidgetOptional), BlueprintReadWrite)
+	TObjectPtr<class UTextBlock> RunTimerText;
 
 private:
 	void OnHealthChanged(const FOnAttributeChangeData& Data);

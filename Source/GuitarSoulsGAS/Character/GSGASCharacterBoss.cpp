@@ -13,6 +13,8 @@
 #include "Tags/GSGASGameplayTags.h"
 #include "UI/GSGASBossHpBar.h"
 #include "UI/GSGASVictoryWidget.h"
+#include "Save/GSGASRunTimerSubsystem.h"
+#include "Engine/GameInstance.h"
 
 AGSGASCharacterBoss::AGSGASCharacterBoss()
 {
@@ -168,6 +170,15 @@ void AGSGASCharacterBoss::OnHealthChanged(const FOnAttributeChangeData& Data)
 
 void AGSGASCharacterBoss::OnOutOfHealth()
 {
+	// 타임어택 기록 확정 — Victory 위젯 지연 시간이 기록에 포함되지 않도록 사망 즉시 정지
+	if (UGameInstance* GI = GetGameInstance())
+	{
+		if (UGSGASRunTimerSubsystem* RunTimer = GI->GetSubsystem<UGSGASRunTimerSubsystem>())
+		{
+			RunTimer->StopRun();
+		}
+	}
+
 	// Victory 위젯은 BP OnDeath 오버라이드와 무관하게 항상 실행되어야 하므로 여기서 처리
 	// BindWeakLambda(GetWorld(), ...) — 콜백 생존 여부를 World 기준으로 판단하므로
 	// 액터가 Destroy된 이후에도 타이머가 취소되지 않음

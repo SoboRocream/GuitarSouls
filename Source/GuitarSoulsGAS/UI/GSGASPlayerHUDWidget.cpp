@@ -9,6 +9,8 @@
 #include "Components/TextBlock.h"
 #include "Engine/World.h"
 #include "TimerManager.h"
+#include "Engine/GameInstance.h"
+#include "Save/GSGASRunTimerSubsystem.h"
 
 void UGSGASPlayerHUDWidget::SetAbilitySystemComponent(AActor* InOwner)
 {
@@ -59,6 +61,22 @@ void UGSGASPlayerHUDWidget::NativeConstruct()
 	if (InteractPromptText)
 	{
 		InteractPromptText->SetVisibility(ESlateVisibility::Collapsed);
+	}
+}
+
+void UGSGASPlayerHUDWidget::NativeTick(const FGeometry& MyGeometry, float InDeltaTime)
+{
+	Super::NativeTick(MyGeometry, InDeltaTime);
+
+	if (!RunTimerText) return;
+
+	const UGSGASRunTimerSubsystem* RunTimer = GetGameInstance() ? GetGameInstance()->GetSubsystem<UGSGASRunTimerSubsystem>() : nullptr;
+	const bool bRunActive = RunTimer && (RunTimer->IsRunning() || RunTimer->IsRunFinished());
+
+	RunTimerText->SetVisibility(bRunActive ? ESlateVisibility::HitTestInvisible : ESlateVisibility::Collapsed);
+	if (bRunActive)
+	{
+		RunTimerText->SetText(UGSGASRunTimerSubsystem::FormatTime(RunTimer->GetElapsedSeconds()));
 	}
 }
 

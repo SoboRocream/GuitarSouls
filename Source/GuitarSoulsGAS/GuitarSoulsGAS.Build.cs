@@ -23,7 +23,8 @@ public class GuitarSoulsGAS : ModuleRules
                 "GameplayTasks",
                 "GameplayTags",
                 "NavigationSystem",
-                "AIModule"
+                "AIModule",
+                "SlateCore"
             }
         );
     }
