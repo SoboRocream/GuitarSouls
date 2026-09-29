@@ -5,6 +5,7 @@
 #include "Item/GSGASWeapon.h"
 #include "AbilitySystemComponent.h"
 #include "GuitarSoulsGAS.h"
+#include "Components/CapsuleComponent.h"
 #include "Tags/GSGASGameplayTags.h"
 
 
@@ -103,6 +104,9 @@ void AGSGASCharacterBase::BeginPlay()
 {
 	Super::BeginPlay();
 	GSGAS_LOG(LogGSGAS, Log, TEXT("GSGASCharacterBase BeginPlay on %s."), *GetName());
+	
+	GetCapsuleComponent()->SetCollisionResponseToChannel(ECC_Camera, ECR_Ignore);
+	GetMesh()->SetCollisionResponseToChannel(ECC_Camera, ECR_Ignore);
 }
 
 void AGSGASCharacterBase::SpawnAndEquipWeaponInCombat(TSubclassOf<AGSGASWeapon> WeaponClass)
